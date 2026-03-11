@@ -34,8 +34,12 @@
         
         button { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; }
         button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(230, 57, 70, 0.2); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
         
         .footer-note { font-size: 11px; color: var(--text-muted); margin-top: 25px; line-height: 1.6; }
+        
+        /* Message de statut pour notre test */
+        #debug-status { font-size: 12px; font-weight: 600; margin-bottom: 15px; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -46,6 +50,8 @@
         
         <h1>Rejoignez le Club !</h1>
         <p class="subtitle texte-recompense">Chargement...</p>
+
+        <div id="debug-status" style="background: #ffeaa7; color: #d63031;">⏳ Connexion à la base de données...</div>
 
         <form id="form-inscription" method="POST">
             
@@ -67,7 +73,7 @@
             <input type="hidden" name="email_address_check" value="">
             <input type="hidden" name="locale" value="fr">
 
-            <button type="submit">Gagner mon 1er point 🎉</button>
+            <button type="submit" id="btn-submit" disabled>Gagner mon 1er point 🎉</button>
         </form>
 
         <div class="footer-note">
@@ -75,20 +81,35 @@
         </div>
     </div>
 
-<script>
-        // On attend que toute la page soit bien chargée
-        document.addEventListener("DOMContentLoaded", function() {
-            const config = appliquerConfig();
+    <script>
+        window.onload = function() {
+            const statusBox = document.getElementById('debug-status');
+            const btnSubmit = document.getElementById('btn-submit');
             const form = document.getElementById('form-inscription');
-            
-            if(form && config.formInscription) {
-                form.action = config.formInscription;
-                console.log("✅ Formulaire connecté au lien :", form.action);
-            } else {
-                console.log("❌ Erreur : Formulaire ou lien introuvable.");
+
+            try {
+                // On appelle la fonction de config.js
+                const config = appliquerConfig();
+
+                if (config && config.formInscription) {
+                    // Succès : on injecte le lien et on débloque le bouton
+                    form.action = config.formInscription;
+                    statusBox.innerHTML = "✅ Système connecté et prêt !";
+                    statusBox.style.background = "#d1fae5";
+                    statusBox.style.color = "#059669";
+                    btnSubmit.disabled = false;
+                } else {
+                    // Erreur : Le lien manque dans config.js
+                    statusBox.innerHTML = "❌ Erreur : Lien Brevo introuvable.";
+                    statusBox.style.background = "#fee2e2";
+                }
+            } catch (error) {
+                // Erreur critique : config.js est introuvable ou cassé
+                statusBox.innerHTML = "❌ Erreur : Impossible de lire config.js !";
+                statusBox.style.background = "#fee2e2";
+                console.error(error);
             }
-        });
+        };
     </script>
 </body>
-
 </html>
