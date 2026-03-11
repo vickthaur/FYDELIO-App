@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Carte Fidélité</title>
+    <script src="config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff7675; /* Remplacé automatiquement par config.js */
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: #1e1e1e; width: 100%; max-width: 350px; border-radius: 25px; padding: 35px 25px; text-align: center; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .logo-resto { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #888; margin-bottom: 25px; }
+        .welcome { font-size: 16px; margin-bottom: 5px; }
+        .points-number { font-size: 64px; font-weight: 700; color: var(--primary); line-height: 1; margin: 15px 0; }
+        .points-label { font-size: 12px; color: #888; letter-spacing: 1px; margin-bottom: 20px; }
+        
+        .progress-container { background: #333; height: 12px; border-radius: 10px; margin: 20px 0; overflow: hidden; }
+        .progress-bar { background: var(--primary); height: 100%; width: 0%; transition: width 1.5s ease-in-out; }
+        
+        #qrcode { background: white; padding: 15px; border-radius: 15px; display: inline-block; margin: 25px 0; }
+        .instructions { font-size: 12px; color: #666; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="logo-resto nom-resto">Chargement...</div>
+        <p class="welcome">Bonjour, <strong id="user-prenom" style="color: var(--primary);">Ami</strong> !</p>
+        
+        <div class="points-display">
+            <div class="points-number" id="user-points">0</div>
+            <div class="points-label">POINTS CUMULÉS</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="barre-progression"></div>
+        </div>
+
+        <p id="phrase-info" style="font-size: 13px; color: #bbb; font-weight: 500;">Calcul des points...</p>
+
+        <div id="qrcode"></div>
+        
+        <p class="instructions">Présentez ce code au serveur <br>pour valider votre passage.</p>
+    </div>
+
+    <script>
+        // 1. On applique les couleurs et textes du resto
+        appliquerConfig();
+        
+        // 2. On lit l'URL envoyée par Brevo
+        const urlParams = new URLSearchParams(window.location.search);
+        const prenom = urlParams.get('prenom') || "Client";
+        const email = urlParams.get('email');
+        const points = parseInt(urlParams.get('p')) || 0;
+        
+        // 🛠️ LE MAXIMUM DE POINTS POUR AVOIR LE CADEAU (Tu peux le changer ici)
+        const maxPoints = 5;
+
+        // 3. On affiche le prénom et les points
+        document.getElementById('user-prenom').innerText = prenom;
+        document.getElementById('user-points').innerText = points;
+        
+        // On fait avancer la barre (avec un maximum bloqué à 100%)
+        const pourcentage = (points / maxPoints) * 100;
+        document.getElementById('barre-progression').style.width = Math.min(pourcentage, 100) + "%";
+
+        // 🎯 4. LA LOGIQUE DE LA PHRASE DYNAMIQUE
+        const phraseInfo = document.getElementById('phrase-info');
+        const pointsRestants = maxPoints - points;
+
+        if (pointsRestants > 1) {
+            phraseInfo.innerHTML = "Plus que <strong>" + pointsRestants + " points</strong> avant votre cadeau !";
+        } else if (pointsRestants === 1) {
+            phraseInfo.innerHTML = "Plus que <strong>1 point</strong> avant votre cadeau !";
+        } else {
+            // Si les points sont à 5 ou plus
+            phraseInfo.innerHTML = "🎉 <strong>Cadeau débloqué !</strong>";
+            phraseInfo.style.color = "var(--primary)"; // Le texte s'illumine à la couleur du resto
+        }
+
+        // 5. On génère le QR Code
+        if (email) {
+            new QRCode(document.getElementById("qrcode"), {
+                text: email,
+                width: 150,
+                height: 150,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        } else {
+            document.getElementById('qrcode').innerHTML = "<p style='color:black; font-size:10px;'>Erreur: Email manquant</p>";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Fidélité</title>
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #e63946;
+            --primary-hover: #d62828;
+            --bg-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            --text-dark: #2b2d42;
+            --text-muted: #8d99ae;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg-gradient); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-dark); padding: 20px; }
+        
+        .card { background: #ffffff; width: 100%; max-width: 420px; border-radius: 20px; padding: 40px 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); text-align: center; position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.02); }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--primary); }
+        
+        .logo { font-size: 42px; margin-bottom: 5px; }
+        .restaurant-name { font-size: 12px; text-transform: uppercase; letter-spacing: 2.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 25px; }
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
+        .subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 30px; }
+        .highlight { color: var(--primary); font-weight: 700; }
+        
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; margin-left: 2px; }
+        .optional { font-weight: 400; color: var(--text-muted); font-size: 11px; }
+        .form-group input { width: 100%; padding: 15px; border: 2px solid #edf2f4; border-radius: 12px; font-family: inherit; font-size: 14px; transition: all 0.3s ease; background-color: #fbfbfc; color: var(--text-dark); }
+        .form-group input:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.1); }
+        
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; }
+        button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(230, 57, 70, 0.2); }
+        
+        .footer-note { font-size: 11px; color: var(--text-muted); margin-top: 25px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="logo">🍽️</div>
+        <div class="restaurant-name nom-resto">Chargement...</div>
+        
+        <h1>Rejoignez le Club !</h1>
+        <p class="subtitle texte-recompense">Chargement...</p>
+
+        <form id="form-inscription" method="POST">
+            
+            <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="PRENOM" placeholder="Ex: Thomas" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Adresse Email</label>
+                <input type="email" id="email" name="EMAIL" placeholder="thomas@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="anniversaire">Date de naissance <span class="optional">(Optionnel)</span></label>
+                <input type="text" id="anniversaire" name="ANNIVERSAIRE" placeholder="jj-mm-aaaa">
+            </div>
+
+            <input type="hidden" name="email_address_check" value="">
+            <input type="hidden" name="locale" value="fr">
+
+            <button type="submit">Gagner mon 1er point 🎉</button>
+        </form>
+
+        <div class="footer-note">
+            Vos données sont sécurisées. Vous acceptez de recevoir vos avantages par email. 0% spam.
+        </div>
+    </div>
+
+    <script>
+        const config = appliquerConfig();
+        document.getElementById('form-inscription').action = config.formInscription;
+    </script>
+</body>
+</html>

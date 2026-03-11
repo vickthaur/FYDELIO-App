@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Serveur</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --card-bg: #1e222b;
+            --primary: #ff7675;
+            --primary-hover: #e86a69;
+            --success: #10b981;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            text-align: center; 
+            padding: 40px 20px; 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header-title {
+            margin-bottom: 30px;
+        }
+
+        .header-title h1 { 
+            font-size: 22px; 
+            font-weight: 700;
+            margin: 0 0 5px 0; 
+            color: var(--primary); 
+            letter-spacing: 0.5px;
+        }
+
+        .header-title p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        #reader { 
+            width: 100%; 
+            max-width: 380px; 
+            background: var(--card-bg);
+            border-radius: 24px; 
+            overflow: hidden; 
+            border: none !important; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4), 0 0 0 2px rgba(255, 118, 117, 0.1); 
+            padding-bottom: 10px;
+        }
+
+        #reader button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        #reader button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        #reader select {
+            background: #2a2f3a;
+            color: white;
+            border: 1px solid #3f4654;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            margin-bottom: 15px;
+            width: 80%;
+            outline: none;
+        }
+
+        #reader a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        #reader__scan_region {
+            border-radius: 24px 24px 0 0;
+            overflow: hidden;
+        }
+
+        .status { 
+            margin-top: 30px; 
+            padding: 12px 24px; 
+            border-radius: 50px; 
+            background: #2a2f3a; 
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status.success-mode {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status.success-mode .status-dot {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-title">
+        <h1>📸 SCANNER CLIENT</h1>
+        <p class="nom-resto">Chargement...</p>
+    </div>
+
+    <div id="reader"></div>
+
+    <div id="status" class="status">
+        <div class="status-dot" id="dot"></div>
+        <span id="status-text">Prêt à scanner...</span>
+    </div>
+
+    <script>
+        // On charge la configuration
+        const config = appliquerConfig();
+
+        function onScanSuccess(decodedText) {
+            const statusDiv = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            
+            statusDiv.classList.add('success-mode');
+            statusText.innerText = "Client détecté ! Validation...";
+            
+            // REDIRECTION MAGIQUE : On envoie l'ID du resto ET l'email à la page valider.html
+            const urlValidation = "valider.html?resto=" + config.id + "&email=" + encodeURIComponent(decodedText.trim());
+            window.location.href = urlValidation;
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 } 
+        });
+        
+        html5QrcodeScanner.render(onScanSuccess);
+    </script>
+</body>
+</html>

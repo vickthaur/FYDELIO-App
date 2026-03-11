@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation du Point - FIDELITE</title>
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff7675; /* Modifié par config.js */
+        }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: #1a1a1a; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            text-align: center; 
+        }
+        .card { 
+            background: #262626; 
+            padding: 40px; 
+            border-radius: 25px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
+            width: 85%; 
+            max-width: 400px; 
+        }
+        .spinner { 
+            border: 5px solid #333; 
+            border-top: 5px solid var(--primary); 
+            border-radius: 50%; 
+            width: 50px; 
+            height: 50px; 
+            animation: spin 1s linear infinite; 
+            margin: 20px auto; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { font-size: 20px; color: var(--primary); margin-bottom: 10px; }
+        p { color: #aaa; font-size: 14px; }
+        #display-email { font-weight: 600; color: #fff; word-break: break-all; }
+    </style>
+</head>
+<body onload="lancerValidation();">
+
+    <div class="card">
+        <div class="spinner"></div>
+        <h2>VALIDATION...</h2>
+        <p class="nom-resto" style="color: #aaa; font-size: 12px; margin-bottom: 15px;">Chargement...</p>
+        <p>Enregistrement du point pour :</p>
+        <div id="display-email">Recherche du client...</div>
+    </div>
+
+    <form id="brevo-form" method="POST" style="display:none;">
+        <input type="email" name="EMAIL" id="email-input" required>
+        <input type="text" name="email_address_check" value="">
+        <input type="hidden" name="locale" value="fr">
+        <input type="hidden" name="html_type" value="simple">
+    </form>
+
+    <script>
+        function lancerValidation() {
+            // 1. On charge la config (ça met les bonnes couleurs et le bon nom)
+            const config = appliquerConfig();
+            
+            // 2. On connecte le formulaire au bon lien Brevo du resto
+            document.getElementById('brevo-form').action = config.formValidation;
+
+            // 3. On récupère l'email scanné
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailClient = urlParams.get('email');
+
+            if (emailClient) {
+                document.getElementById('display-email').innerText = emailClient;
+                document.getElementById('email-input').value = emailClient;
+
+                // On valide automatiquement au bout d'1.5s
+                setTimeout(() => {
+                    document.getElementById('brevo-form').submit();
+                }, 1500);
+            } else {
+                document.getElementById('display-email').innerText = "ERREUR : Aucun email détecté.";
+                document.getElementById('display-email').style.color = "#ff4d4d";
+            }
+        }
+    </script>
+</body>
+</html>
