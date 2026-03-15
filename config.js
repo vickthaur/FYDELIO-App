@@ -35,10 +35,10 @@ const agenceClients = {
         logo: "https://vickthaur.github.io/FIDDLE/logo-villa.png",
         
         // Liens Brevo (A remplacer par les nouveaux formulaires créés pour eux)
-        formInscription: "URL_FORMULAIRE_INSCRIPTION_VILLA",
-        formValidation: "URL_FORMULAIRE_VALIDATION_VILLA",
+        formInscription: "https://9d65705b.sibforms.com/serve/MUIFAPNZrGyP3i0xNF-FdppNziEkhvnAiLtRY8uUfol3hxIyq6VHE11ofNd5fjQp_Iq7tjv6nklXAhjOPj_Le1u6Wxz_U2NCQLtoBMgkuGrjRNvCwMzFg7KcWEyXIcW-JPoDtL2QizWiwcOJl5-G96lbhakbnyeJT1cxI_8ZV4SVOfBt8CDOHTGIi-KdJSAAPTHMADTN5Gyt8PgqdA==",
+        formValidation: "https://9d65705b.sibforms.com/serve/MUIFAJDcz_H5hCbvQ9g1SOqKVyAo5fIPRSH5Av5deHgtWT5pF0ZkzbdcnwySESsegIdFuxzkw8rMMZkfiUMzvAMDfIaGzl42YBw1P3Fw1H1Z6B914_I3TwYpVPNWMv0nqARUMZI8bG2Cja6rYBZ6EAkXhGLetQKjHnDCX4EP0I8Gv7Te36b1rLjJiUI4Fas-3uxA1-XpotgR3ujdWg==",
         
-        googleScript: "URL_GOOGLE_SCRIPT_VILLA" 
+        googleScript: "https://script.google.com/macros/s/AKfycbyjfLm46q2wuOjqn1kwII6bmM4QGGG8iD9S3VXa3bQ3_eL9NvOZQcQ4KEBow4l0mNU9xg/exec" 
     }
 
     // AJOUTER UN CLIENT ICI :
