@@ -4,124 +4,202 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ma Carte Fidélité</title>
+    
     <script src="config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #ff7675; /* Remplacé automatiquement par config.js */
+            --primary: #ff7675; 
+            --primary-glow: rgba(255, 118, 117, 0.3);
         }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Poppins', sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .card { background: #1e1e1e; width: 100%; max-width: 350px; border-radius: 25px; padding: 35px 25px; text-align: center; border: 1px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .logo-resto { font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #888; margin-bottom: 25px; }
-        .welcome { font-size: 16px; margin-bottom: 5px; }
-        .points-number { font-size: 64px; font-weight: 700; color: var(--primary); line-height: 1; margin: 15px 0; }
-        .points-label { font-size: 12px; color: #888; letter-spacing: 1px; margin-bottom: 20px; }
         
-        .progress-container { background: #333; height: 12px; border-radius: 10px; margin: 20px 0; overflow: hidden; }
-        .progress-bar { background: var(--primary); height: 100%; width: 0%; transition: width 1.5s ease-in-out; }
-        
-        #qrcode { background: white; padding: 15px; border-radius: 15px; display: inline-block; margin: 25px 0; }
-        .instructions { font-size: 12px; color: #666; line-height: 1.5; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: #0b0d12; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px;
+            background-image: radial-gradient(circle at top right, #1a1f2e 0%, #0b0d12 60%);
+        }
 
-        /* Animation de chargement des points */
-        .loading-pulse { animation: pulse 1.5s infinite; color: #888; font-size: 24px; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .card { 
+            background: rgba(30, 34, 43, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            width: 100%; 
+            max-width: 380px; 
+            border-radius: 30px; 
+            padding: 40px 25px; 
+            text-align: center; 
+            border: 1px solid rgba(255,255,255,0.08); 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        .logo-resto { 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            color: var(--primary); 
+            margin-bottom: 25px; 
+            font-weight: 700;
+        }
+
+        .welcome { font-size: 16px; color: #94a3b8; margin-bottom: 5px; }
+        
+        .points-number { 
+            font-size: 72px; 
+            font-weight: 800; 
+            color: white; 
+            line-height: 1; 
+            margin: 10px 0;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .points-label { 
+            font-size: 11px; 
+            color: #64748b; 
+            letter-spacing: 2px; 
+            margin-bottom: 25px; 
+            font-weight: 600;
+        }
+        
+        .progress-container { 
+            background: rgba(255,255,255,0.05); 
+            height: 12px; 
+            border-radius: 20px; 
+            margin: 20px 0; 
+            overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .progress-bar { 
+            background: linear-gradient(90deg, var(--primary), #fff);
+            height: 100%; 
+            width: 0%; 
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); 
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+        
+        #qrcode { 
+            background: white; 
+            padding: 12px; 
+            border-radius: 20px; 
+            display: inline-block; 
+            margin: 25px 0;
+            border: 4px solid rgba(255,255,255,0.1);
+        }
+
+        .instructions { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+
+        .loading-pulse { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        
+        .reward-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            margin: 15px 0;
+            color: #cbd5e1;
+        }
     </style>
 </head>
 <body>
 
     <div class="card">
         <div class="logo-resto nom-resto">Chargement...</div>
-        <p class="welcome">Bonjour, <strong id="user-prenom" style="color: var(--primary);">...</strong> !</p>
+        <p class="welcome">Bonjour, <span id="user-prenom" style="color:white; font-weight:700;">...</span></p>
         
         <div class="points-display">
-            <div class="points-number loading-pulse" id="user-points">...</div>
-            <div class="points-label">POINTS CUMULÉS</div>
+            <div class="points-number loading-pulse" id="user-points">--</div>
+            <div class="points-label">POINTS FIDÉLITÉ</div>
         </div>
 
         <div class="progress-container">
             <div class="progress-bar" id="barre-progression"></div>
         </div>
 
-        <p id="phrase-info" style="font-size: 13px; color: #bbb; font-weight: 500;">Calcul des points...</p>
+        <p id="phrase-info" style="font-size: 14px; color: #cbd5e1; font-weight: 500;">Initialisation...</p>
+        
+        <div class="reward-box texte-recompense">Chargement de l'offre...</div>
 
         <div id="qrcode"></div>
         
-        <p class="instructions">Présentez ce code au serveur <br>pour valider votre passage.</p>
+        <p class="instructions">Présentez ce QR Code au serveur<br>pour valider votre passage.</p>
     </div>
 
     <script>
-        // 1. On applique les couleurs et textes du resto (via config.js)
+        // 1. Charger la config du resto
+        let currentConfig = {};
         if (typeof appliquerConfig === "function") {
-            appliquerConfig();
+            currentConfig = appliquerConfig();
         }
-        
-        // 2. Configuration depuis l'URL (resto et email)
+
+        // 2. Récupérer les données de l'URL
         const urlParams = new URLSearchParams(window.location.search);
         const email = urlParams.get('email');
-        const maxPoints = 5; // Le maximum pour le cadeau
-        
-        // 🔗 TON NOUVEAU LIEN GOOGLE SCRIPT EST ICI :
-        const scriptURL = "https://script.google.com/macros/s/AKfycbyl8joE1RKd1f6enmwc9IUTLfmn6aAfSdby5RpuM6iHDJTTCarPbldwUsd_QgQuZhPB/exec";
 
-        // 3. Fonction pour mettre à jour l'affichage avec les données réelles
+        /**
+         * Met à jour l'interface avec les points réels
+         */
         function mettreAJourCarte(points, prenom) {
             document.getElementById('user-prenom').innerText = prenom || "Client";
             
             const pointsEl = document.getElementById('user-points');
             pointsEl.innerText = points;
-            pointsEl.classList.remove('loading-pulse'); // On enlève l'animation
+            pointsEl.classList.remove('loading-pulse');
             
-            // Animation de la barre
+            // Calcul dynamique basé sur le SEUIL du resto (5 ou 10)
+            const maxPoints = currentConfig.seuilPoints || 5;
             const pourcentage = (points / maxPoints) * 100;
             document.getElementById('barre-progression').style.width = Math.min(pourcentage, 100) + "%";
 
-            // Logique de la phrase
             const phraseInfo = document.getElementById('phrase-info');
             const pointsRestants = maxPoints - points;
 
-            if (pointsRestants > 1) {
-                phraseInfo.innerHTML = "Plus que <strong>" + pointsRestants + " points</strong> avant votre cadeau !";
-            } else if (pointsRestants === 1) {
-                phraseInfo.innerHTML = "Plus que <strong>1 point</strong> avant votre cadeau !";
+            if (pointsRestants > 0) {
+                phraseInfo.innerHTML = `Plus que <strong>${pointsRestants} point${pointsRestants > 1 ? 's' : ''}</strong> avant votre cadeau !`;
             } else {
                 phraseInfo.innerHTML = "🎉 <strong>Cadeau débloqué !</strong>";
                 phraseInfo.style.color = "var(--primary)";
             }
         }
 
-        // 4. Appel au Google Script pour récupérer les points en direct dans Brevo
+        // 3. Exécution
         if (email) {
-            // Génération du QR Code tout de suite pour que ce soit fluide
+            // QR Code immédiat
             new QRCode(document.getElementById("qrcode"), {
                 text: email,
-                width: 150,
-                height: 150,
+                width: 140,
+                height: 140,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.H
             });
 
-            // On interroge Brevo via ton Google Script
-            fetch(scriptURL + "?email=" + encodeURIComponent(email))
+            // Récupération des points via le Google Script du resto
+            const apiLink = currentConfig.googleScript;
+            
+            fetch(apiLink + "?email=" + encodeURIComponent(email))
                 .then(response => response.json())
                 .then(data => {
-                    // On met à jour la carte avec les VRAIS points
-                    mettreAJourCarte(data.points, data.prenom);
+                    mettreAJourCarte(data.points || 0, data.prenom);
                 })
                 .catch(error => {
-                    console.error("Erreur de récupération :", error);
-                    document.getElementById('phrase-info').innerHTML = "<span style='color:#ef4444;'>Erreur de synchronisation</span>";
-                    mettreAJourCarte(0, "Client"); // Valeurs par défaut en cas d'erreur
+                    console.error("Erreur :", error);
+                    document.getElementById('phrase-info').innerHTML = "<span style='color:#ff7675;'>Erreur de connexion</span>";
+                    mettreAJourCarte(0, "Ami");
                 });
         } else {
-            document.getElementById('qrcode').innerHTML = "<p style='color:black; font-size:10px; padding:20px;'>Erreur: Email manquant</p>";
-            document.getElementById('phrase-info').innerText = "Veuillez cliquer sur le lien dans votre email.";
-            document.getElementById('user-points').innerText = "0";
-            document.getElementById('user-points').classList.remove('loading-pulse');
+            document.querySelector('.card').innerHTML = "<h2>Accès refusé</h2><p>Lien invalide.</p>";
         }
     </script>
 </body>
