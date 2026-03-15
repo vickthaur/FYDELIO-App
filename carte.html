@@ -54,18 +54,18 @@
     </div>
 
     <script>
-        // 1. On applique les couleurs et textes du resto (config.js)
+        // 1. On applique les couleurs et textes du resto (via config.js)
         if (typeof appliquerConfig === "function") {
             appliquerConfig();
         }
         
-        // 2. Configuration
+        // 2. Configuration depuis l'URL (resto et email)
         const urlParams = new URLSearchParams(window.location.search);
         const email = urlParams.get('email');
         const maxPoints = 5; // Le maximum pour le cadeau
         
-        // 🔗 TON LIEN GOOGLE SCRIPT EST INTÉGRÉ ICI :
-        const scriptURL = "https://script.google.com/macros/s/AKfycbxRlv9sB3e0_dVpgLJv_ZueFif_yhcGvUxyLB7mn9SgfDWSRkQvMHfp2d-geM62KlOfzA/exec";
+        // 🔗 TON NOUVEAU LIEN GOOGLE SCRIPT EST ICI :
+        const scriptURL = "https://script.google.com/macros/s/AKfycbyl8joE1RKd1f6enmwc9IUTLfmn6aAfSdby5RpuM6iHDJTTCarPbldwUsd_QgQuZhPB/exec";
 
         // 3. Fonction pour mettre à jour l'affichage avec les données réelles
         function mettreAJourCarte(points, prenom) {
@@ -93,9 +93,9 @@
             }
         }
 
-        // 4. Appel au Google Script pour récupérer les points en direct
+        // 4. Appel au Google Script pour récupérer les points en direct dans Brevo
         if (email) {
-            // Génération du QR Code tout de suite (pas besoin d'attendre Google)
+            // Génération du QR Code tout de suite pour que ce soit fluide
             new QRCode(document.getElementById("qrcode"), {
                 text: email,
                 width: 150,
@@ -105,7 +105,7 @@
                 correctLevel : QRCode.CorrectLevel.H
             });
 
-            // On interroge la base de données via Google Script
+            // On interroge Brevo via ton Google Script
             fetch(scriptURL + "?email=" + encodeURIComponent(email))
                 .then(response => response.json())
                 .then(data => {
