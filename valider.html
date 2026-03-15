@@ -33,48 +33,48 @@
         function lancerValidation() {
             const urlParams = new URLSearchParams(window.location.search);
             const emailClient = urlParams.get('email');
-            const uiBox = document.getElementById('ui-box');
+            
+            // --- 🔄 GESTION DU MULTI-RESTO ---
+            // On récupère le paramètre "resto" (ex: bistrot ou villa_saint_antoine)
+            const restoID = urlParams.get('resto') || 'bistrot'; 
+            
+            // On prépare le lien de retour dynamique vers ton App principale
+            const URL_RETOUR = `https://vickthaur.github.io/FIDDLE-App/scanner.html?resto=${restoID}`;
 
-            // 🔗 TON NOUVEAU LIEN GOOGLE SCRIPT EST ICI :
+            const uiBox = document.getElementById('ui-box');
             const API_URL = "https://script.google.com/macros/s/AKfycbyjfLm46q2wuOjqn1kwII6bmM4QGGG8iD9S3VXa3bQ3_eL9NvOZQcQ4KEBow4l0mNU9xg/exec";
 
             if (emailClient) {
-                // On appelle le Google Script
                 fetch(API_URL + "?email=" + encodeURIComponent(emailClient))
                     .then(response => response.json())
                     .then(data => {
-                        
                         if(data.success) {
-                            // 🟢 SUCCÈS API : ON PASSE AU VERT
                             document.body.style.backgroundColor = '#10b981';
                             document.getElementById('son-succes').play().catch(()=>console.log("Son bloqué"));
                             
-                            // On affiche le nouveau score renvoyé par le script
                             uiBox.innerHTML = `
                                 <div class="icon-box">✔️</div>
                                 <h1>VALIDÉ !</h1>
                                 <p>Score actuel : ${data.nouveauScore} pts</p>
                             `;
 
-                            // Redirection vers le scanner après 2 secondes
+                            // Redirection vers le BON scanner après 2 secondes
                             setTimeout(() => {
-                                window.location.href = 'https://vickthaur.github.io/FIDDLE-scanner/';
+                                window.location.href = URL_RETOUR;
                             }, 2000);
 
                         } else {
-                            afficherErreur();
+                            afficherErreur("Erreur lors de l'ajout.");
                         }
                     })
                     .catch(error => {
                         afficherErreur();
                     });
-
             } else {
                 afficherErreur("Aucun QR Code détecté.");
             }
 
             function afficherErreur(message = "Erreur de connexion API") {
-                // 🔴 ERREUR API : ON PASSE AU ROUGE
                 document.body.style.backgroundColor = '#ef4444';
                 document.getElementById('son-erreur').play().catch(()=>console.log("Son bloqué"));
                 
@@ -82,7 +82,7 @@
                     <div class="icon-box">❌</div>
                     <h1>ÉCHEC</h1>
                     <p>${message}</p>
-                    <button class="btn-retour" onclick="window.location.href='https://vickthaur.github.io/FIDDLE-App/scanner.html'">Retour au Scanner</button>
+                    <button class="btn-retour" onclick="window.location.href='${URL_RETOUR}'">Retour au Scanner</button>
                 `;
             }
         }
