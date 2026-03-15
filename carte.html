@@ -7,199 +7,160 @@
     
     <script src="config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        :root {
+        :root { 
             --primary: #ff7675; 
-            --primary-glow: rgba(255, 118, 117, 0.3);
+            --primary-glow: rgba(255, 118, 117, 0.3); 
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body { 
-            font-family: 'Poppins', sans-serif; 
-            background: #0b0d12; 
-            color: white; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            padding: 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #0b0d12; color: white; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; padding: 20px;
             background-image: radial-gradient(circle at top right, #1a1f2e 0%, #0b0d12 60%);
         }
 
         .card { 
-            background: rgba(30, 34, 43, 0.7);
-            backdrop-filter: blur(15px);
+            background: rgba(30, 34, 43, 0.7); 
+            backdrop-filter: blur(15px); 
             -webkit-backdrop-filter: blur(15px);
-            width: 100%; 
-            max-width: 380px; 
-            border-radius: 30px; 
-            padding: 40px 25px; 
-            text-align: center; 
+            width: 100%; max-width: 380px; 
+            border-radius: 30px; padding: 40px 25px; 
+            text-align: center;
             border: 1px solid rgba(255,255,255,0.08); 
             box-shadow: 0 30px 60px rgba(0,0,0,0.5);
         }
 
         .logo-resto { 
-            font-size: 12px; 
-            text-transform: uppercase; 
-            letter-spacing: 4px; 
-            color: var(--primary); 
-            margin-bottom: 25px; 
-            font-weight: 700;
+            font-size: 12px; text-transform: uppercase; 
+            letter-spacing: 4px; color: var(--primary); 
+            margin-bottom: 25px; font-weight: 700; 
         }
 
-        .welcome { font-size: 16px; color: #94a3b8; margin-bottom: 5px; }
+        .welcome { font-size: 16px; color: #94a3b8; }
         
         .points-number { 
-            font-size: 72px; 
-            font-weight: 800; 
-            color: white; 
-            line-height: 1; 
-            margin: 10px 0;
-            text-shadow: 0 0 20px var(--primary-glow);
+            font-size: 72px; font-weight: 800; color: white; 
+            line-height: 1; margin: 10px 0; 
+            text-shadow: 0 0 20px var(--primary-glow); 
         }
 
         .points-label { 
-            font-size: 11px; 
-            color: #64748b; 
-            letter-spacing: 2px; 
-            margin-bottom: 25px; 
-            font-weight: 600;
+            font-size: 11px; color: #64748b; 
+            letter-spacing: 2px; margin-bottom: 25px; 
+            font-weight: 600; 
         }
         
         .progress-container { 
             background: rgba(255,255,255,0.05); 
-            height: 12px; 
-            border-radius: 20px; 
-            margin: 20px 0; 
-            overflow: hidden; 
-            border: 1px solid rgba(255,255,255,0.05);
+            height: 12px; border-radius: 20px; 
+            margin: 20px 0; overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.05); 
         }
 
         .progress-bar { 
-            background: linear-gradient(90deg, var(--primary), #fff);
-            height: 100%; 
-            width: 0%; 
+            background: linear-gradient(90deg, var(--primary), #fff); 
+            height: 100%; width: 0%; 
             transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); 
-            box-shadow: 0 0 15px var(--primary-glow);
         }
         
         #qrcode { 
-            background: white; 
-            padding: 12px; 
-            border-radius: 20px; 
-            display: inline-block; 
-            margin: 25px 0;
-            border: 4px solid rgba(255,255,255,0.1);
+            background: white; padding: 12px; 
+            border-radius: 20px; display: inline-block; 
+            margin: 25px 0; border: 4px solid rgba(255,255,255,0.1); 
         }
 
-        .instructions { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+        .reward-box { 
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            padding: 12px; border-radius: 15px; 
+            font-size: 13px; margin: 15px 0; color: #cbd5e1; 
+        }
 
         .loading-pulse { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-        
-        .reward-box {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px;
-            border-radius: 15px;
-            font-size: 13px;
-            margin: 15px 0;
-            color: #cbd5e1;
-        }
     </style>
 </head>
 <body>
 
     <div class="card">
         <div class="logo-resto nom-resto">Chargement...</div>
-        <p class="welcome">Bonjour, <span id="user-prenom" style="color:white; font-weight:700;">...</span></p>
+        <p class="welcome">Bonjour, <span id="user-prenom">...</span></p>
         
         <div class="points-display">
-            <div class="points-number loading-pulse" id="user-points">--</div>
+            <div class="points-number" id="user-points">--</div>
             <div class="points-label">POINTS FIDÉLITÉ</div>
         </div>
 
-        <div class="progress-container">
-            <div class="progress-bar" id="barre-progression"></div>
-        </div>
+        <div class="progress-container"><div class="progress-bar" id="barre-progression"></div></div>
 
-        <p id="phrase-info" style="font-size: 14px; color: #cbd5e1; font-weight: 500;">Initialisation...</p>
-        
+        <p id="phrase-info" style="font-size: 14px; color: #cbd5e1; font-weight: 500;">Connexion...</p>
         <div class="reward-box texte-recompense">Chargement de l'offre...</div>
-
         <div id="qrcode"></div>
-        
-        <p class="instructions">Présentez ce QR Code au serveur<br>pour valider votre passage.</p>
+        <p style="font-size: 12px; color: #94a3b8;">Présentez ce QR Code au serveur</p>
     </div>
 
     <script>
-        // 1. Charger la config du resto
-        let currentConfig = {};
+        // 1. Initialisation avec config.js
+        let currentConfig = { seuilPoints: 5 };
         if (typeof appliquerConfig === "function") {
             currentConfig = appliquerConfig();
         }
 
-        // 2. Récupérer les données de l'URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const email = urlParams.get('email');
+        // 2. Récupération des données URL (Nom et Points prioritaires)
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email');
+        const prenomURL = params.get('prenom');
+        const pointsURL = parseInt(params.get('p')) || 0;
+
+        // --- AFFICHAGE FLASH (Zéro attente) ---
+        // On remplit tout de suite avec les infos du lien
+        document.getElementById('user-prenom').innerText = prenomURL || "Client";
+        document.getElementById('user-points').innerText = pointsURL;
+        mettreAJourVisuels(pointsURL);
 
         /**
-         * Met à jour l'interface avec les points réels
+         * Met à jour la barre et la phrase en fonction des points
          */
-        function mettreAJourCarte(points, prenom) {
-            document.getElementById('user-prenom').innerText = prenom || "Client";
-            
-            const pointsEl = document.getElementById('user-points');
-            pointsEl.innerText = points;
-            pointsEl.classList.remove('loading-pulse');
-            
-            // Calcul dynamique basé sur le SEUIL du resto (5 ou 10)
-            const maxPoints = currentConfig.seuilPoints || 5;
-            const pourcentage = (points / maxPoints) * 100;
-            document.getElementById('barre-progression').style.width = Math.min(pourcentage, 100) + "%";
+        function mettreAJourVisuels(pts) {
+            const max = currentConfig.seuilPoints || 5;
+            const pourcent = (pts / max) * 100;
+            document.getElementById('barre-progression').style.width = Math.min(pourcent, 100) + "%";
 
-            const phraseInfo = document.getElementById('phrase-info');
-            const pointsRestants = maxPoints - points;
-
-            if (pointsRestants > 0) {
-                phraseInfo.innerHTML = `Plus que <strong>${pointsRestants} point${pointsRestants > 1 ? 's' : ''}</strong> avant votre cadeau !`;
+            const reste = max - pts;
+            const info = document.getElementById('phrase-info');
+            if (reste > 0) {
+                info.innerHTML = `Plus que <strong>${reste} point${reste > 1 ? 's' : ''}</strong> avant votre cadeau !`;
             } else {
-                phraseInfo.innerHTML = "🎉 <strong>Cadeau débloqué !</strong>";
-                phraseInfo.style.color = "var(--primary)";
+                info.innerHTML = "🎉 <strong>Cadeau débloqué !</strong>";
+                info.style.color = "var(--primary)";
             }
         }
 
-        // 3. Exécution
+        // 3. SYNCHRONISATION RÉELLE (Google Script)
         if (email) {
             // QR Code immédiat
-            new QRCode(document.getElementById("qrcode"), {
-                text: email,
-                width: 140,
-                height: 140,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
+            new QRCode(document.getElementById("qrcode"), { text: email, width: 130, height: 130 });
 
-            // Récupération des points via le Google Script du resto
-            const apiLink = currentConfig.googleScript;
-            
-            fetch(apiLink + "?email=" + encodeURIComponent(email))
-                .then(response => response.json())
+            // On demande la version officielle à Brevo (Script de Lecture)
+            fetch(currentConfig.scriptLecture + "?email=" + encodeURIComponent(email))
+                .then(res => res.json())
                 .then(data => {
-                    mettreAJourCarte(data.points || 0, data.prenom);
+                    // Si Brevo répond, on affine l'affichage au cas où
+                    if (data.prenom) document.getElementById('user-prenom').innerText = data.prenom;
+                    if (data.points !== undefined) {
+                        document.getElementById('user-points').innerText = data.points;
+                        mettreAJourVisuels(data.points);
+                    }
                 })
-                .catch(error => {
-                    console.error("Erreur :", error);
-                    document.getElementById('phrase-info').innerHTML = "<span style='color:#ff7675;'>Erreur de connexion</span>";
-                    mettreAJourCarte(0, "Ami");
-                });
+                .catch(err => console.log("Liaison temps réel en attente..."));
         } else {
-            document.querySelector('.card').innerHTML = "<h2>Accès refusé</h2><p>Lien invalide.</p>";
+            document.querySelector('.card').innerHTML = "<h2>Erreur</h2><p>Lien invalide (Email manquant).</p>";
         }
     </script>
 </body>
