@@ -99,38 +99,38 @@
 
     <script>
         function lancerValidation() {
-            // 1. Charger la config dynamique
-            let clientConfig = {};
+            // 1. Charger la config dynamique (le cerveau)
+            let config = {};
             if (typeof appliquerConfig === "function") {
-                clientConfig = appliquerConfig();
+                config = appliquerConfig();
             }
 
             const urlParams = new URLSearchParams(window.location.search);
             const emailClient = urlParams.get('email');
             
             // On récupère le resto pour savoir où retourner
-            const restoID = clientConfig.id || 'bistrot'; 
+            const restoID = config.id || 'bistrot'; 
             const URL_RETOUR = `scanner.html?resto=${restoID}`;
 
             const uiBox = document.getElementById('ui-box');
             
-            // On récupère le lien Google Script depuis la config
-            const API_URL = clientConfig.googleScript;
+            // ⚠️ CORRECTION : On utilise le script de VALIDATION défini dans config.js
+            const API_URL = config.scriptValidation;
 
             if (emailClient && API_URL) {
-                // Appel API
+                // Appel API vers le Google Script (+1 Point)
                 fetch(API_URL + "?email=" + encodeURIComponent(emailClient))
                     .then(response => response.json())
                     .then(data => {
                         if(data.success) {
-                            // 🟢 SUCCÈS
+                            // 🟢 SUCCÈS : On passe au VERT
                             document.body.style.backgroundColor = 'var(--success)';
-                            document.getElementById('son-succes').play().catch(()=>console.log("Audio bloqué"));
+                            document.getElementById('son-succes').play().catch(()=>console.log("Audio bloqué par le navigateur"));
                             
                             uiBox.innerHTML = `
                                 <div class="icon-box">✔️</div>
                                 <h1>VALIDÉ !</h1>
-                                <p>Score de ${data.prenom || 'Client'} :<br><strong>${data.nouveauScore} points</strong></p>
+                                <p>Score actuel :<br><strong>${data.nouveauScore} points</strong></p>
                             `;
 
                             // Retour automatique au scanner après 2.5 secondes
@@ -139,20 +139,20 @@
                             }, 2500);
 
                         } else {
-                            afficherErreur("Client non reconnu ou erreur.");
+                            afficherErreur("Erreur : " + (data.message || "Client non reconnu."));
                         }
                     })
                     .catch(error => {
-                        afficherErreur("Problème de connexion réseau.");
+                        afficherErreur("Problème de connexion avec Brevo.");
                     });
             } else {
-                afficherErreur(emailClient ? "Config API manquante." : "Aucun email détecté.");
+                afficherErreur(emailClient ? "Config API Validation manquante." : "Aucun email détecté.");
             }
 
             function afficherErreur(message) {
-                // 🔴 ÉCHEC
+                // 🔴 ÉCHEC : On passe au ROUGE
                 document.body.style.backgroundColor = 'var(--error)';
-                document.getElementById('son-erreur').play().catch(()=>console.log("Audio bloqué"));
+                document.getElementById('son-erreur').play().catch(()=>console.log("Audio bloqué par le navigateur"));
                 
                 uiBox.innerHTML = `
                     <div class="icon-box">❌</div>
