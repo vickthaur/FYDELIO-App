@@ -4,18 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validation Fiddle</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; font-family: 'Poppins', sans-serif; background-color: #1a1a1a; color: white; text-align: center; transition: background-color 0.4s ease-out; overflow: hidden; }
-        .container { display: flex; flex-direction: column; align-items: center; transform: scale(0.9); animation: popIn 0.4s forwards; }
-        @keyframes popIn { to { transform: scale(1); } }
-        .icon-box { font-size: 90px; margin-bottom: 10px; line-height: 1; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes bounceIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .spinner { width: 70px; height: 70px; border: 6px solid rgba(255,255,255,0.1); border-top-color: #ffffff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        :root {
+            --primary: #ffffff;
+            --primary-glow: rgba(255, 255, 255, 0.2);
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body { 
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0b0d12; 
+            color: white; 
+            text-align: center; 
+            transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            overflow: hidden; 
+        }
+
+        .container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 40px;
+            width: 85%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: popIn 0.5s ease-out; 
+        }
+
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .icon-box { 
+            font-size: 80px; 
+            margin-bottom: 20px; 
+            line-height: 1; 
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .spinner { 
+            width: 60px; 
+            height: 60px; 
+            border: 5px solid rgba(255,255,255,0.1); 
+            border-top-color: var(--primary); 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+            margin-bottom: 25px; 
+        }
+
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        h1 { font-size: 32px; margin: 0 0 10px 0; letter-spacing: 1px; }
-        p { color: rgba(255,255,255,0.9); font-size: 16px; margin: 0; font-weight: 500;}
-        .btn-retour { margin-top: 30px; padding: 12px 30px; border: none; border-radius: 12px; background: white; color: #ef4444; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        h1 { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; letter-spacing: -0.5px; }
+        p { color: rgba(255,255,255,0.7); font-size: 16px; margin: 0; font-weight: 500; line-height: 1.5; }
+
+        .btn-retour { 
+            margin-top: 30px; 
+            padding: 15px 35px; 
+            border: none; 
+            border-radius: 16px; 
+            background: white; 
+            color: #000; 
+            font-size: 15px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn-retour:active { transform: scale(0.95); }
     </style>
 </head>
 <body onload="lancerValidation()">
@@ -25,64 +93,72 @@
 
     <div class="container" id="ui-box">
         <div class="spinner"></div>
-        <h1>Traitement...</h1>
-        <p>Validation sécurisée</p>
+        <h1 class="nom-resto">Chargement...</h1>
+        <p>Validation du point en cours</p>
     </div>
 
     <script>
         function lancerValidation() {
+            // 1. Charger la config dynamique
+            let clientConfig = {};
+            if (typeof appliquerConfig === "function") {
+                clientConfig = appliquerConfig();
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const emailClient = urlParams.get('email');
             
-            // --- 🔄 GESTION DU MULTI-RESTO ---
-            // On récupère le paramètre "resto" (ex: bistrot ou villa_saint_antoine)
-            const restoID = urlParams.get('resto') || 'bistrot'; 
-            
-            // On prépare le lien de retour dynamique vers ton App principale
-            const URL_RETOUR = `https://vickthaur.github.io/FIDDLE-App/scanner.html?resto=${restoID}`;
+            // On récupère le resto pour savoir où retourner
+            const restoID = clientConfig.id || 'bistrot'; 
+            const URL_RETOUR = `scanner.html?resto=${restoID}`;
 
             const uiBox = document.getElementById('ui-box');
-            const API_URL = "https://script.google.com/macros/s/AKfycbyjfLm46q2wuOjqn1kwII6bmM4QGGG8iD9S3VXa3bQ3_eL9NvOZQcQ4KEBow4l0mNU9xg/exec";
+            
+            // On récupère le lien Google Script depuis la config
+            const API_URL = clientConfig.googleScript;
 
-            if (emailClient) {
+            if (emailClient && API_URL) {
+                // Appel API
                 fetch(API_URL + "?email=" + encodeURIComponent(emailClient))
                     .then(response => response.json())
                     .then(data => {
                         if(data.success) {
-                            document.body.style.backgroundColor = '#10b981';
-                            document.getElementById('son-succes').play().catch(()=>console.log("Son bloqué"));
+                            // 🟢 SUCCÈS
+                            document.body.style.backgroundColor = 'var(--success)';
+                            document.getElementById('son-succes').play().catch(()=>console.log("Audio bloqué"));
                             
                             uiBox.innerHTML = `
                                 <div class="icon-box">✔️</div>
                                 <h1>VALIDÉ !</h1>
-                                <p>Score actuel : ${data.nouveauScore} pts</p>
+                                <p>Score de ${data.prenom || 'Client'} :<br><strong>${data.nouveauScore} points</strong></p>
                             `;
 
-                            // Redirection vers le BON scanner après 2 secondes
+                            // Retour automatique au scanner après 2.5 secondes
                             setTimeout(() => {
                                 window.location.href = URL_RETOUR;
-                            }, 2000);
+                            }, 2500);
 
                         } else {
-                            afficherErreur("Erreur lors de l'ajout.");
+                            afficherErreur("Client non reconnu ou erreur.");
                         }
                     })
                     .catch(error => {
-                        afficherErreur();
+                        afficherErreur("Problème de connexion réseau.");
                     });
             } else {
-                afficherErreur("Aucun QR Code détecté.");
+                afficherErreur(emailClient ? "Config API manquante." : "Aucun email détecté.");
             }
 
-            function afficherErreur(message = "Erreur de connexion API") {
-                document.body.style.backgroundColor = '#ef4444';
-                document.getElementById('son-erreur').play().catch(()=>console.log("Son bloqué"));
+            function afficherErreur(message) {
+                // 🔴 ÉCHEC
+                document.body.style.backgroundColor = 'var(--error)';
+                document.getElementById('son-erreur').play().catch(()=>console.log("Audio bloqué"));
                 
                 uiBox.innerHTML = `
                     <div class="icon-box">❌</div>
-                    <h1>ÉCHEC</h1>
+                    <h1>ERREUR</h1>
                     <p>${message}</p>
-                    <button class="btn-retour" onclick="window.location.href='${URL_RETOUR}'">Retour au Scanner</button>
+                    <button class="btn-retour" onclick="window.location.href='${URL_RETOUR}'">Réessayer</button>
                 `;
             }
         }
