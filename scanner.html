@@ -172,36 +172,44 @@
     </div>
 
     <script>
-        // 1. Initialisation de la config client dynamique
+        // --- CORRECTION DU SCRIPT ---
+        
         let clientConfig = { id: "bistrot" };
         
-        if (typeof appliquerConfig === "function") {
-            clientConfig = appliquerConfig();
-        }
+        // On attend que la config soit chargée pour initialiser
+        window.addEventListener('load', () => {
+            if (typeof appliquerConfig === "function") {
+                try {
+                    clientConfig = appliquerConfig();
+                } catch (e) {
+                    console.error("Erreur de chargement de la config :", e);
+                }
+            }
+        });
 
-        // 2. Gestion du succès du scan
         function onScanSuccess(decodedText) {
-            // On stoppe immédiatement le scanner pour éviter les lectures multiples
-            html5QrcodeScanner.clear();
-
             const statusDiv = document.getElementById('status');
             const statusText = document.getElementById('status-text');
             
-            // Feedback visuel "Succès"
+            // Effet visuel immédiat
             statusDiv.classList.add('success-mode');
-            statusText.innerText = "Traitement du client...";
-            
-            // 3. Redirection vers la page de validation (Même dossier)
-            setTimeout(() => {
-                const urlValidation = `valider.html?resto=${clientConfig.id}&email=${encodeURIComponent(decodedText.trim())}`;
-                window.location.href = urlValidation;
-            }, 400);
+            statusText.innerText = "Code détecté !";
+
+            // On arrête le scanner proprement avant de partir
+            html5QrcodeScanner.clear().then(() => {
+                // Redirection vers valider.html avec les bons paramètres
+                const emailEncoded = encodeURIComponent(decodedText.trim());
+                window.location.href = `valider.html?resto=${clientConfig.id}&email=${emailEncoded}`;
+            }).catch(err => {
+                // Si le clear échoue, on force quand même la redirection
+                window.location.href = `valider.html?resto=${clientConfig.id}&email=${encodeURIComponent(decodedText.trim())}`;
+            });
         }
 
-        // 4. Configuration technique du scanner
+        // Config technique pour la fluidité
         let html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
-            fps: 15, 
-            qrbox: { width: 230, height: 230 }, 
+            fps: 20, // Plus de FPS pour un scan plus nerveux
+            qrbox: { width: 250, height: 250 }, 
             aspectRatio: 1.0,
             showTorchButtonIfSupported: true 
         });
