@@ -34,6 +34,7 @@
             text-align: center;
             border: 1px solid rgba(255,255,255,0.08); 
             box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            position: relative;
         }
 
         .logo-resto { 
@@ -82,85 +83,123 @@
             font-size: 13px; margin: 15px 0; color: #cbd5e1; 
         }
 
+        /* Animations de chargement */
         .loading-pulse { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        .error-msg { color: #ff7675; font-size: 12px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <div class="logo-resto nom-resto">Chargement...</div>
-        <p class="welcome">Bonjour, <span id="user-prenom">...</span></p>
+        <p class="welcome">Bonjour, <span id="user-prenom" class="loading-pulse">...</span></p>
         
         <div class="points-display">
-            <div class="points-number" id="user-points">--</div>
+            <div class="points-number loading-pulse" id="user-points">--</div>
             <div class="points-label">POINTS FIDÉLITÉ</div>
         </div>
 
-        <div class="progress-container"><div class="progress-bar" id="barre-progression"></div></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="barre-progression"></div>
+        </div>
 
-        <p id="phrase-info" style="font-size: 14px; color: #cbd5e1; font-weight: 500;">Connexion...</p>
+        <p id="phrase-info" style="font-size: 14px; color: #cbd5e1; font-weight: 500;">Mise à jour en cours...</p>
+        
         <div class="reward-box texte-recompense">Chargement de l'offre...</div>
+
         <div id="qrcode"></div>
+        
         <p style="font-size: 12px; color: #94a3b8;">Présentez ce QR Code au serveur</p>
+        <div id="error-display" class="error-msg">Problème de connexion avec Brevo</div>
     </div>
 
     <script>
-        // 1. Initialisation avec config.js
+        /**
+         * 1. INITIALISATION
+         * On récupère la configuration du restaurant via config.js
+         */
         let currentConfig = { seuilPoints: 5 };
         if (typeof appliquerConfig === "function") {
             currentConfig = appliquerConfig();
         }
 
-        // 2. Récupération des données URL (Nom et Points prioritaires)
-        const params = new URLSearchParams(window.location.search);
-        const email = params.get('email');
-        const prenomURL = params.get('prenom');
-        const pointsURL = parseInt(params.get('p')) || 0;
-
-        // --- AFFICHAGE FLASH (Zéro attente) ---
-        // On remplit tout de suite avec les infos du lien
-        document.getElementById('user-prenom').innerText = prenomURL || "Client";
-        document.getElementById('user-points').innerText = pointsURL;
-        mettreAJourVisuels(pointsURL);
-
         /**
-         * Met à jour la barre et la phrase en fonction des points
+         * 2. RÉCUPÉRATION DES PARAMÈTRES URL
+         * On ne prend QUE l'email et éventuellement le prénom pour l'affichage initial
          */
-        function mettreAJourVisuels(pts) {
-            const max = currentConfig.seuilPoints || 5;
-            const pourcent = (pts / max) * 100;
-            document.getElementById('barre-progression').style.width = Math.min(pourcent, 100) + "%";
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const prenomInitial = urlParams.get('prenom');
 
-            const reste = max - pts;
-            const info = document.getElementById('phrase-info');
-            if (reste > 0) {
-                info.innerHTML = `Plus que <strong>${reste} point${reste > 1 ? 's' : ''}</strong> avant votre cadeau !`;
-            } else {
-                info.innerHTML = "🎉 <strong>Cadeau débloqué !</strong>";
-                info.style.color = "var(--primary)";
-            }
+        // Affichage du prénom s'il est dans l'URL, sinon on attend l'API
+        if (prenomInitial) {
+            document.getElementById('user-prenom').innerText = prenomInitial;
+            document.getElementById('user-prenom').classList.remove('loading-pulse');
         }
 
-        // 3. SYNCHRONISATION RÉELLE (Google Script)
+        /**
+         * 3. GESTION DU QR CODE
+         * Généré immédiatement à partir de l'email
+         */
         if (email) {
-            // QR Code immédiat
-            new QRCode(document.getElementById("qrcode"), { text: email, width: 130, height: 130 });
+            new QRCode(document.getElementById("qrcode"), {
+                text: email,
+                width: 130,
+                height: 130,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
 
-            // On demande la version officielle à Brevo (Script de Lecture)
-            fetch(currentConfig.scriptLecture + "?email=" + encodeURIComponent(email))
-                .then(res => res.json())
+            /**
+             * 4. APPEL API TEMPS RÉEL
+             * On interroge le Google Script de lecture pour avoir les vrais points
+             * On ajoute un timestamp (?v=...) pour casser le cache du navigateur
+             */
+            const scriptUrl = currentConfig.scriptLecture;
+            
+            fetch(scriptUrl + "?email=" + encodeURIComponent(email) + "&v=" + Date.now())
+                .then(response => response.json())
                 .then(data => {
-                    // Si Brevo répond, on affine l'affichage au cas où
-                    if (data.prenom) document.getElementById('user-prenom').innerText = data.prenom;
-                    if (data.points !== undefined) {
-                        document.getElementById('user-points').innerText = data.points;
-                        mettreAJourVisuels(data.points);
+                    // Mise à jour du prénom
+                    if (data.prenom) {
+                        document.getElementById('user-prenom').innerText = data.prenom;
+                        document.getElementById('user-prenom').classList.remove('loading-pulse');
+                    }
+
+                    // Mise à jour des points
+                    const pointsReels = parseInt(data.points) || 0;
+                    const pointsDisplay = document.getElementById('user-points');
+                    pointsDisplay.innerText = pointsReels;
+                    pointsDisplay.classList.remove('loading-pulse');
+
+                    // Calcul de la progression selon le seuil (5 ou 10)
+                    const seuil = currentConfig.seuilPoints || 5;
+                    const pourcentage = (pointsReels / seuil) * 100;
+                    document.getElementById('barre-progression').style.width = Math.min(pourcentage, 100) + "%";
+
+                    // Mise à jour du message d'information
+                    const phraseInfo = document.getElementById('phrase-info');
+                    const reste = seuil - pointsReels;
+
+                    if (reste > 0) {
+                        phraseInfo.innerHTML = `Plus que <strong>${reste} point${reste > 1 ? 's' : ''}</strong> avant votre cadeau !`;
+                    } else {
+                        phraseInfo.innerHTML = "🎉 <strong>Cadeau débloqué !</strong>";
+                        phraseInfo.style.color = "var(--primary)";
                     }
                 })
-                .catch(err => console.log("Liaison temps réel en attente..."));
+                .catch(error => {
+                    console.error("Erreur API :", error);
+                    document.getElementById('error-display').style.display = "block";
+                    document.getElementById('phrase-info').innerText = "Impossible de charger vos points.";
+                });
+
         } else {
-            document.querySelector('.card').innerHTML = "<h2>Erreur</h2><p>Lien invalide (Email manquant).</p>";
+            // Si l'email est manquant, la carte est inutilisable
+            document.querySelector('.card').innerHTML = "<h1>Lien Invalide</h1><p>Veuillez utiliser le lien reçu par email.</p>";
         }
     </script>
 </body>
