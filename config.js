@@ -22,7 +22,7 @@ const agenceClients = {
         formValidation: "https://9d65705b.sibforms.com/serve/MUIFADjqIProT_Cl28inJrj0bX2b4zK_XA-Ov9LDV2gWtskwsKQ7VVo09QVM5hlDGzylzy6392uTx_swkr0hHIW_VqQybc45jJR5TbzoCVHjs8OaZqF1BF4j-j2hbOTYyNbscvcENAbY2zKv6QDi8hTpGkzLbe-2Ng8qNIkZaPO7yAU4sy6CCAxOAZhIpb1H-gBjsPxIEeL9bWuUsg==",
         
         // Moteurs Google Script
-        scriptLecture: "https://script.google.com/macros/s/AKfycbynquHX2M6CNODt-UQFjVpX2lKJCwUpJXFgSW8sbOpLBTkyLi_ozWsynyE272fyH5TE_w/exec",
+        scriptLecture: "https://script.google.com/macros/s/AKfycbx5wex2lA8EkyTbEtSaFGtK3u4YXvMNuHVdH9DED2B1pfYogzwRMNfgmlXF5riJhTHK/exec",
         scriptValidation: "https://script.google.com/macros/s/AKfycbyDzCL_VVaRXrwGaMFAAYrvnCAoV6Qy3FCaDS3Uz2L75y_7QXLm9EUABKocaQgUxNJx8w/exec"
     },
 
@@ -44,7 +44,7 @@ const agenceClients = {
         formValidation: "https://9d65705b.sibforms.com/serve/MUIFAJDcz_H5hCbvQ9g1SOqKVyAo5fIPRSH5Av5deHgtWT5pF0ZkzbdcnwySESsegIdFuxzkw8rMMZkfiUMzvAMDfIaGzl42YBw1P3Fw1H1Z6B914_I3TwYpVPNWMv0nqARUMZI8bG2Cja6rYBZ6EAkXhGLetQKjHnDCX4EP0I8Gv7Te36b1rLjJiUI4Fas-3uxA1-XpotgR3ujdWg==",
         
         // Moteurs Google Script
-        scriptLecture: "https://script.google.com/macros/s/AKfycbynquHX2M6CNODt-UQFjVpX2lKJCwUpJXFgSW8sbOpLBTkyLi_ozWsynyE272fyH5TE_w/exec",
+        scriptLecture: "https://script.google.com/macros/s/AKfycbx5wex2lA8EkyTbEtSaFGtK3u4YXvMNuHVdH9DED2B1pfYogzwRMNfgmlXF5riJhTHK/exec",
         scriptValidation: "https://script.google.com/macros/s/AKfycbyDzCL_VVaRXrwGaMFAAYrvnCAoV6Qy3FCaDS3Uz2L75y_7QXLm9EUABKocaQgUxNJx8w/exec"
     }
 };
