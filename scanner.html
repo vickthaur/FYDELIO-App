@@ -3,312 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validation Point - FIDDLE</title>
+    <title>Scanner Serveur - FIDDLE</title>
     
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Couleurs d'état (Succès / Erreur) */
         :root {
-            --success: #10b981;
-            --error: #ef4444;
-        }
-
-        body { 
-            margin: 0; 
-            height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0b0d12; 
-            color: white; 
-            text-align: center; 
-            transition: background-color 0.5s ease; /* Transition douce vers le vert ou le rouge */
-            overflow: hidden; 
-        }
-
-        /* Boîte centrale */
-        .container { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 40px;
-            width: 85%;
-            max-width: 400px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            animation: popIn 0.5s ease-out; 
-        }
-
-        /* Typographie et icônes */
-        h1 { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; letter-spacing: -0.5px; }
-        p { color: rgba(255,255,255,0.7); font-size: 16px; margin: 0; font-weight: 500; line-height: 1.5; }
-        .icon-box { font-size: 80px; margin-bottom: 20px; line-height: 1; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        /* Animation de chargement */
-        .spinner { width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.1); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
-        
-        /* Bouton retour (en cas d'erreur) */
-        .btn-retour { margin-top: 30px; padding: 15px 35px; border: none; border-radius: 16px; background: white; color: #000; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.2s; }
-        .btn-retour:active { transform: scale(0.95); }
-
-        /* Keyframes */
-        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-    </style>
-</head>
-<body onload="lancerValidation()">
-
-    <audio id="son-succes" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
-    <audio id="son-erreur" src="https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3" preload="auto"></audio>
-
-    <main class="container" id="ui-box">
-        <div class="spinner"></div>
-        <h1>Chargement...</h1>
-        <p>Validation du point en cours</p>
-    </main>
-
-    <script>
-        function lancerValidation() {
-            // 1. Charger la config dynamique (le cerveau)
-            let currentConfig = { id: 'bistrot' };
-            if (typeof appliquerConfig === "function") {
-                currentConfig = appliquerConfig();
-            }
-
-            // 2. Récupérer les données envoyées par le scanner (dans l'URL)
-            const urlParams = new URLSearchParams(window.location.search);
-            const emailClient = urlParams.get('email');
-            
-            // 🎯 On s'assure de récupérer le bon resto (sinon bistrot par défaut)
-            const restoID = urlParams.get('resto') || currentConfig.id || 'bistrot'; 
-            
-            // 3. Préparer l'URL pour revenir au scanner automatiquement
-            const URL_RETOUR = `scanner.html?resto=${restoID}`;
-            const uiBox = document.getElementById('ui-box');
-            
-            // On récupère le lien du Google Script "Validation"
-            const API_URL = currentConfig.scriptValidation;
-
-            // 4. Lancer l'ajout des points !
-            if (emailClient && API_URL && restoID) {
-                
-                // 🎯 CORRECTION CLÉ : On envoie l'email ET le resto au Script !
-                const fetchUrl = `${API_URL}?email=${encodeURIComponent(emailClient)}&resto=${encodeURIComponent(restoID)}`;
-                
-                fetch(fetchUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // 🟢 SUCCÈS : Écran Vert
-                            document.body.style.backgroundColor = 'var(--success)';
-                            document.getElementById('son-succes').play().catch(e => console.log("Audio bloqué"));
-                            
-                            uiBox.innerHTML = `
-                                <div class="icon-box">✔️</div>
-                                <h1>VALIDÉ !</h1>
-                                <p>Score actuel :<br><strong>${data.nouveauScore} points</strong></p>
-                            `;
-
-                            // Retour au scanner du serveur après 2.5 secondes
-                            setTimeout(() => {
-                                window.location.href = URL_RETOUR;
-                            }, 2500);
-
-                        } else {
-                            // 🔴 ÉCHEC (ex: compte introuvable sur Brevo)
-                            afficherErreur("Erreur : " + (data.message || "Client non reconnu."));
-                        }
-                    })
-                    .catch(error => {
-                        afficherErreur("Problème de connexion avec Brevo.");
-                    });
-            } else {
-                afficherErreur(emailClient ? "Lien du script de validation manquant dans config.js" : "Aucun email détecté dans le QR Code.");
-            }
-
-            // 5. Fonction pour afficher l'écran rouge
-            function afficherErreur(message) {
-                document.body.style.backgroundColor = 'var(--error)';
-                document.getElementById('son-erreur').play().catch(e => console.log("Audio bloqué"));
-                
-                uiBox.innerHTML = `
-                    <div class="icon-box">❌</div>
-                    <h1>ERREUR</h1>
-                    <p>${message}</p>
-                    <button class="btn-retour" onclick="window.location.href='${URL_RETOUR}'">Réessayer</button>
-                `;
-            }
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Carte Fidélité</title>
-    
-    <script src="config.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-
-    <style>
-        /* Variables dynamiques écrasées par config.js */
-        :root { 
+            --bg-color: #0b0d12;
+            --card-bg: rgba(30, 34, 43, 0.7);
             --primary: #ff7675; 
-            --primary-glow: rgba(255, 118, 117, 0.3); 
-        }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #0b0d12; 
-            color: white; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            padding: 20px;
-            background-image: radial-gradient(circle at top right, #1a1f2e 0%, #0b0d12 60%);
+            --primary-glow: rgba(255, 118, 117, 0.3);
+            --success: #10b981;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
         }
 
-        /* Conteneur de la carte */
-        .card { 
-            background: rgba(30, 34, 43, 0.7); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px);
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            text-align: center; 
+            padding: 40px 20px; 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top, #1a1f2e 0%, var(--bg-color) 70%);
+            overflow-x: hidden;
+        }
+
+        .header-title {
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header-title h1 { 
+            font-size: 24px; 
+            font-weight: 800;
+            margin: 0 0 5px 0; 
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ----- SCANNER UI ----- */
+        #reader { 
             width: 100%; 
             max-width: 380px; 
-            border-radius: 30px; 
-            padding: 40px 25px; 
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.08); 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 32px; 
+            overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.08) !important; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4); 
+            padding-bottom: 15px;
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Textes */
-        .logo-resto { font-size: 12px; text-transform: uppercase; letter-spacing: 4px; color: var(--primary); margin-bottom: 25px; font-weight: 700; }
-        .welcome { font-size: 16px; color: #94a3b8; }
-        .points-number { font-size: 72px; font-weight: 800; color: white; line-height: 1; margin: 10px 0; text-shadow: 0 0 20px var(--primary-glow); }
-        .points-label { font-size: 11px; color: #64748b; letter-spacing: 2px; margin-bottom: 25px; font-weight: 600; }
-        
-        /* Barre de progression */
-        .progress-container { background: rgba(255,255,255,0.05); height: 12px; border-radius: 20px; margin: 20px 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        .progress-bar { background: linear-gradient(90deg, var(--primary), #fff); height: 100%; width: 0%; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        
-        /* QR Code et Récompense */
-        #qrcode { background: white; padding: 12px; border-radius: 20px; display: inline-block; margin: 25px 0; border: 4px solid rgba(255,255,255,0.1); }
-        .reward-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 15px; font-size: 13px; margin: 15px 0; color: #cbd5e1; }
-        
-        /* Animations */
-        .loading-pulse { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
-        .error-msg { color: #ff7675; font-size: 12px; margin-top: 10px; display: none; }
+        /* Nettoyage de l'interface native du plugin (Mais on garde le bouton image !) */
+        #reader a { display: none; }
+        #reader__dashboard_section_csr span { color: var(--text-muted) !important; font-size: 13px; }
+        #reader__dashboard_section_swaplink { display: inline-block !important; color: var(--primary) !important; font-weight: 600; text-decoration: none; margin-top: 10px; }
+
+        #reader select {
+            background: rgba(0,0,0,0.4);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 15px;
+            width: 85%;
+            outline: none;
+        }
+
+        #reader button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 10px 5px;
+            box-shadow: 0 8px 20px var(--primary-glow);
+        }
+
+        #reader button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        #reader__scan_region {
+            border-radius: 32px 32px 0 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* ----- BARRE DE STATUT ----- */
+        .status { 
+            margin-top: 35px; 
+            padding: 14px 28px; 
+            border-radius: 100px; 
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.08);
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--primary);
+            animation: pulse 1.8s infinite;
+        }
+
+        .status.success-mode {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status.success-mode .status-dot {
+            background: var(--success);
+            box-shadow: 0 0 15px var(--success);
+            animation: none;
+        }
+
+        /* ----- ANIMATIONS ----- */
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.6; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.6; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <main class="card">
-        <header class="logo-resto nom-resto">Chargement...</header>
-        <p class="welcome">Bonjour, <span id="user-prenom" class="loading-pulse">...</span></p>
-        
-        <section class="points-display">
-            <div class="points-number loading-pulse" id="user-points">--</div>
-            <div class="points-label">POINTS FIDÉLITÉ</div>
-        </section>
+    <div class="header-title">
+        <p>Interface Serveur</p>
+        <h1 class="nom-resto">Chargement...</h1>
+    </div>
 
-        <section class="progress-section">
-            <div class="progress-container">
-                <div class="progress-bar" id="barre-progression"></div>
-            </div>
-            <p id="phrase-info" style="font-size: 14px; color: #cbd5e1; font-weight: 500;">Mise à jour en cours...</p>
-            <div class="reward-box texte-recompense">Chargement de l'offre...</div>
-        </section>
+    <div id="reader"></div>
 
-        <section class="qr-section">
-            <div id="qrcode"></div>
-            <p style="font-size: 12px; color: #94a3b8;">Présentez ce QR Code au serveur</p>
-        </section>
-
-        <div id="error-display" class="error-msg">Impossible de charger vos données.</div>
-    </main>
+    <div id="status" class="status">
+        <div class="status-dot"></div>
+        <span id="status-text">Prêt pour le scan</span>
+    </div>
 
     <script>
-        // 1. Initialisation (Lecture du cerveau config.js)
-        const currentConfig = typeof appliquerConfig === "function" ? appliquerConfig() : { seuilPoints: 5 };
+        let clientConfig = { id: "bistrot" };
         
-        // 2. Récupération des données depuis l'URL (ex: ?email=jean@mail.com&resto=bistrot)
-        const urlParams = new URLSearchParams(window.location.search);
-        const email = urlParams.get('email');
-        const prenomInitial = urlParams.get('prenom');
-        const restoID = urlParams.get('resto') || "bistrot"; // 🎯 CORRECTION ICI : Le resto est bien identifié !
+        // On attend que la config soit chargée pour initialiser
+        window.addEventListener('load', () => {
+            if (typeof appliquerConfig === "function") {
+                try {
+                    clientConfig = appliquerConfig();
+                } catch (e) {
+                    console.error("Erreur de chargement de la config :", e);
+                }
+            }
+        });
 
-        // Affichage immédiat du prénom s'il est dispo
-        if (prenomInitial) {
-            document.getElementById('user-prenom').innerText = prenomInitial;
-            document.getElementById('user-prenom').classList.remove('loading-pulse');
-        }
+        function onScanSuccess(decodedText) {
+            const statusDiv = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            
+            // Effet visuel immédiat
+            statusDiv.classList.add('success-mode');
+            statusText.innerText = "Code détecté !";
 
-        if (email) {
-            // 3. Génération du QR Code pour le scanner
-            new QRCode(document.getElementById("qrcode"), {
-                text: email,
-                width: 130,
-                height: 130,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+            // On arrête le scanner proprement avant de partir
+            html5QrcodeScanner.clear().then(() => {
+                // Redirection vers valider.html avec les bons paramètres !
+                const emailEncoded = encodeURIComponent(decodedText.trim());
+                window.location.href = `valider.html?resto=${clientConfig.id}&email=${emailEncoded}`;
+            }).catch(err => {
+                // Si le clear échoue, on force quand même la redirection
+                window.location.href = `valider.html?resto=${clientConfig.id}&email=${encodeURIComponent(decodedText.trim())}`;
             });
-
-            // 4. Appel au Google Script pour lire les points (avec le paramètre restoID !)
-            const urlAPI = `${currentConfig.scriptLecture}?email=${encodeURIComponent(email)}&resto=${encodeURIComponent(restoID)}&v=${Date.now()}`;
-
-            fetch(urlAPI)
-                .then(response => response.json())
-                .then(data => {
-                    // Mise à jour du prénom
-                    if (data.prenom) {
-                        document.getElementById('user-prenom').innerText = data.prenom;
-                        document.getElementById('user-prenom').classList.remove('loading-pulse');
-                    }
-
-                    // Mise à jour visuelle des points
-                    const points = parseInt(data.points) || 0;
-                    const seuil = currentConfig.seuilPoints;
-                    
-                    document.getElementById('user-points').innerText = points;
-                    document.getElementById('user-points').classList.remove('loading-pulse');
-                    
-                    // Calcul de la barre de progression
-                    document.getElementById('barre-progression').style.width = `${Math.min((points / seuil) * 100, 100)}%`;
-
-                    // Mise à jour de la phrase d'encouragement
-                    const phraseInfo = document.getElementById('phrase-info');
-                    if (points < seuil) {
-                        const reste = seuil - points;
-                        phraseInfo.innerHTML = `Plus que <strong>${reste} point${reste > 1 ? 's' : ''}</strong> avant votre cadeau !`;
-                    } else {
-                        phraseInfo.innerHTML = "🎉 <strong>Cadeau débloqué !</strong>";
-                        phraseInfo.style.color = "var(--primary)";
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur API :", error);
-                    document.getElementById('error-display').style.display = "block";
-                    document.getElementById('phrase-info').innerText = "Erreur de connexion.";
-                });
-
-        } else {
-            // Erreur si aucun email n'est fourni dans l'URL
-            document.querySelector('.card').innerHTML = "<h1>Lien Invalide</h1><p>Veuillez utiliser le lien reçu par email.</p>";
         }
+
+        // Config technique pour la fluidité
+        let html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+            fps: 20, 
+            qrbox: { width: 250, height: 250 }, 
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true 
+        });
+        
+        html5QrcodeScanner.render(onScanSuccess);
     </script>
 </body>
 </html>
