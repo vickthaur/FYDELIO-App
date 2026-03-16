@@ -3,6 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Point - FIDDLE</title>
+    
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Couleurs d'état (Succès / Erreur) */
+        :root {
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body { 
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0b0d12; 
+            color: white; 
+            text-align: center; 
+            transition: background-color 0.5s ease; /* Transition douce vers le vert ou le rouge */
+            overflow: hidden; 
+        }
+
+        /* Boîte centrale */
+        .container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 40px;
+            width: 85%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: popIn 0.5s ease-out; 
+        }
+
+        /* Typographie et icônes */
+        h1 { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; letter-spacing: -0.5px; }
+        p { color: rgba(255,255,255,0.7); font-size: 16px; margin: 0; font-weight: 500; line-height: 1.5; }
+        .icon-box { font-size: 80px; margin-bottom: 20px; line-height: 1; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Animation de chargement */
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.1); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+        
+        /* Bouton retour (en cas d'erreur) */
+        .btn-retour { margin-top: 30px; padding: 15px 35px; border: none; border-radius: 16px; background: white; color: #000; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .btn-retour:active { transform: scale(0.95); }
+
+        /* Keyframes */
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body onload="lancerValidation()">
+
+    <audio id="son-succes" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+    <audio id="son-erreur" src="https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3" preload="auto"></audio>
+
+    <main class="container" id="ui-box">
+        <div class="spinner"></div>
+        <h1>Chargement...</h1>
+        <p>Validation du point en cours</p>
+    </main>
+
+    <script>
+        function lancerValidation() {
+            // 1. Charger la config dynamique (le cerveau)
+            let currentConfig = { id: 'bistrot' };
+            if (typeof appliquerConfig === "function") {
+                currentConfig = appliquerConfig();
+            }
+
+            // 2. Récupérer les données envoyées par le scanner (dans l'URL)
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailClient = urlParams.get('email');
+            
+            // 🎯 On s'assure de récupérer le bon resto (sinon bistrot par défaut)
+            const restoID = urlParams.get('resto') || currentConfig.id || 'bistrot'; 
+            
+            // 3. Préparer l'URL pour revenir au scanner automatiquement
+            const URL_RETOUR = `scanner.html?resto=${restoID}`;
+            const uiBox = document.getElementById('ui-box');
+            
+            // On récupère le lien du Google Script "Validation"
+            const API_URL = currentConfig.scriptValidation;
+
+            // 4. Lancer l'ajout des points !
+            if (emailClient && API_URL && restoID) {
+                
+                // 🎯 CORRECTION CLÉ : On envoie l'email ET le resto au Script !
+                const fetchUrl = `${API_URL}?email=${encodeURIComponent(emailClient)}&resto=${encodeURIComponent(restoID)}`;
+                
+                fetch(fetchUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 🟢 SUCCÈS : Écran Vert
+                            document.body.style.backgroundColor = 'var(--success)';
+                            document.getElementById('son-succes').play().catch(e => console.log("Audio bloqué"));
+                            
+                            uiBox.innerHTML = `
+                                <div class="icon-box">✔️</div>
+                                <h1>VALIDÉ !</h1>
+                                <p>Score actuel :<br><strong>${data.nouveauScore} points</strong></p>
+                            `;
+
+                            // Retour au scanner du serveur après 2.5 secondes
+                            setTimeout(() => {
+                                window.location.href = URL_RETOUR;
+                            }, 2500);
+
+                        } else {
+                            // 🔴 ÉCHEC (ex: compte introuvable sur Brevo)
+                            afficherErreur("Erreur : " + (data.message || "Client non reconnu."));
+                        }
+                    })
+                    .catch(error => {
+                        afficherErreur("Problème de connexion avec Brevo.");
+                    });
+            } else {
+                afficherErreur(emailClient ? "Lien du script de validation manquant dans config.js" : "Aucun email détecté dans le QR Code.");
+            }
+
+            // 5. Fonction pour afficher l'écran rouge
+            function afficherErreur(message) {
+                document.body.style.backgroundColor = 'var(--error)';
+                document.getElementById('son-erreur').play().catch(e => console.log("Audio bloqué"));
+                
+                uiBox.innerHTML = `
+                    <div class="icon-box">❌</div>
+                    <h1>ERREUR</h1>
+                    <p>${message}</p>
+                    <button class="btn-retour" onclick="window.location.href='${URL_RETOUR}'">Réessayer</button>
+                `;
+            }
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ma Carte Fidélité</title>
     
     <script src="config.js"></script>
