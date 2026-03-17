@@ -3,160 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validation - FIDDLE-App</title>
+    <title>Validation - FIDDLE</title>
     
     <script src="config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --primary: #ffffff;
-            --success: #10b981;
-            --error: #ef4444;
-        }
-
+        :root { --primary: #1e293b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            margin: 0; 
-            height: 100vh; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0f172a; 
+            color: white; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0b0d12; 
-            color: white; 
+            height: 100vh; 
             text-align: center; 
-            transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
-            overflow: hidden; 
+            transition: background-color 0.4s ease;
         }
 
-        .container { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
+        .validation-box {
             padding: 40px;
-            width: 85%;
-            max-width: 400px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.05);
             border-radius: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            animation: popIn 0.5s ease-out; 
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 320px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            transform: scale(0.95);
+            opacity: 0;
+            animation: popIn 0.5s forwards cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes popIn { to { transform: scale(1); opacity: 1; } }
 
-        .icon-box { 
-            font-size: 80px; 
-            margin-bottom: 20px; 
-            line-height: 1; 
-            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
-
-        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-
-        .spinner { 
-            width: 60px; 
-            height: 60px; 
-            border: 5px solid rgba(255,255,255,0.1); 
-            border-top-color: var(--primary); 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-            margin-bottom: 25px; 
-        }
-
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        h1 { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; letter-spacing: -0.5px; }
-        p { color: rgba(255,255,255,0.7); font-size: 16px; margin: 0; font-weight: 500; line-height: 1.5; }
-
-        .btn-retour { 
-            margin-top: 30px; 
-            padding: 16px 35px; 
-            border: none; 
-            border-radius: 16px; 
-            background: white; 
-            color: #000; 
-            font-size: 15px; 
+        .icon { font-size: 48px; margin-bottom: 20px; display: block; }
+        h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; }
+        p { color: rgba(255,255,255,0.7); font-size: 15px; font-weight: 700; }
+        
+        .score-display { 
+            font-size: 64px; 
             font-weight: 800; 
-            cursor: pointer; 
-            transition: all 0.2s;
+            color: white; 
+            margin: 20px 0; 
+            display: none;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
-        .btn-retour:active { transform: scale(0.95); }
+
+        /* Classes d'état */
+        body.success { background-color: #10b981; } /* Vert émeraude */
+        body.error { background-color: #ef4444; }   /* Rouge erreur */
+        body.reward { background-color: #f59e0b; }  /* Or pour cadeau */
     </style>
 </head>
-<body onload="lancerValidation()">
+<body>
 
-    <audio id="snd-success" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
-
-    <div class="container" id="ui-box">
-        <div class="spinner"></div>
-        <h1 class="nom-resto">Chargement...</h1>
-        <p>Validation du point en cours</p>
+    <div class="validation-box" id="ui-box">
+        <span class="icon" id="ui-icon">⏳</span>
+        <h1 id="ui-title">Traitement...</h1>
+        <p id="ui-text">Connexion à la base de données</p>
+        <div class="score-display" id="ui-score">0</div>
     </div>
 
     <script>
-        function lancerValidation() {
-            // 1. Charger la config dynamique (FIDDLE-App)
-            const config = appliquerConfig();
+        const config = appliquerConfig();
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email');
 
-            // 2. Récupérer les données transmises par le scanner
-            const urlParams = new URLSearchParams(window.location.search);
-            const emailClient = urlParams.get('email');
-            const restoID = urlParams.get('resto') || config.id; 
-            
+        async function validerPoint() {
             const uiBox = document.getElementById('ui-box');
-            const API_URL = config.scriptValidation;
+            const uiIcon = document.getElementById('ui-icon');
+            const uiTitle = document.getElementById('ui-title');
+            const uiText = document.getElementById('ui-text');
+            const uiScore = document.getElementById('ui-score');
 
-            // URL de retour au scanner (on garde l'ID resto pour ne pas le perdre)
-            const URL_RETOUR = `scanner.html?resto=${restoID}`;
-
-            if (emailClient && API_URL) {
-                // 3. Appel au Google Apps Script de VALIDATION
-                // On ajoute un timestamp pour éviter tout problème de cache
-                const finalRequest = `${API_URL}?email=${encodeURIComponent(emailClient)}&resto=${restoID}&t=${Date.now()}`;
-
-                fetch(finalRequest)
-                    .then(response => response.json())
-                    .then(data => {
-                        if(data.success) {
-                            // 🟢 SUCCÈS : Vert
-                            document.body.style.backgroundColor = 'var(--success)';
-                            try { document.getElementById('snd-success').play(); } catch(e){}
-                            
-                            uiBox.innerHTML = `
-                                <div class="icon-box">✔️</div>
-                                <h1>VALIDÉ !</h1>
-                                <p>Nouveau score pour ce client :<br><strong>${data.nouveauScore} point${data.nouveauScore > 1 ? 's' : ''}</strong></p>
-                            `;
-
-                            // Retour automatique au scanner après 2.5 secondes
-                            setTimeout(() => {
-                                window.location.href = URL_RETOUR;
-                            }, 2500);
-
-                        } else {
-                            // 🔴 ERREUR : Rouge (Ex: Client non trouvé)
-                            afficherErreur("Erreur : " + (data.message || "Action impossible."));
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        afficherErreur("Erreur de connexion aux serveurs FIDDLE.");
-                    });
-            } else {
-                afficherErreur("Données manquantes (Email ou Resto).");
+            if (!email) {
+                document.body.classList.add('error');
+                uiIcon.innerText = "❌";
+                uiTitle.innerText = "Erreur";
+                uiText.innerText = "Email introuvable dans le QR Code.";
+                retourScanner(3000);
+                return;
             }
 
-            function afficherErreur(message) {
-                document.body.style.backgroundColor = 'var(--error)';
-                uiBox.innerHTML = `
-                    <div class="icon-box">❌</div>
-                    <h1>ERREUR</h1>
-                    <p>${message}</p>
-                    <button class="btn-retour" onclick="window.location.href='${URL_RETOUR}'">Réessayer</button>
-                `;
+            try {
+                // 1. On cherche le client dans Supabase
+                let { data: client, error: readError } = await _supabase
+                    .from('clients')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
+                
+                let pointsActuels = 0;
+
+                // 2. S'il n'existe pas, on le crée (Upsert implicite)
+                if (!client) {
+                    const { error: insertError } = await _supabase
+                        .from('clients')
+                        .insert([{ email: email, prenom: 'Client' }]); // Brevo gérera le vrai prénom plus tard
+                    pointsActuels = 0;
+                } else {
+                    pointsActuels = client[config.colonne_points] || 0;
+                }
+
+                // 3. Calcul du nouveau score
+                let nouveauScore;
+                let estCadeau = false;
+
+                if (pointsActuels >= config.seuilPoints) {
+                    // Remise à zéro s'il avait atteint le seuil (il vient chercher son cadeau)
+                    nouveauScore = 1; 
+                    estCadeau = true;
+                } else {
+                    nouveauScore = pointsActuels + 1;
+                    if (nouveauScore === config.seuilPoints) estCadeau = true;
+                }
+
+                // 4. Mise à jour dans Supabase
+                const updateObj = {};
+                updateObj[config.colonne_points] = nouveauScore;
+
+                const { error: updateError } = await _supabase
+                    .from('clients')
+                    .update(updateObj)
+                    .eq('email', email);
+
+                if (updateError) throw updateError;
+
+                // 5. Affichage du succès (Vert)
+                if (estCadeau) {
+                    document.body.classList.add('reward');
+                    uiIcon.innerText = "🎁";
+                    uiTitle.innerText = "CADEAU !";
+                    uiText.innerText = "Le client a droit à sa récompense.";
+                } else {
+                    document.body.classList.add('success');
+                    uiIcon.innerText = "✅";
+                    uiTitle.innerText = "Validé !";
+                    uiText.innerText = "Point ajouté avec succès.";
+                }
+
+                uiScore.style.display = "block";
+                uiScore.innerText = nouveauScore;
+                
+                // Retour auto à la caméra
+                retourScanner(2000);
+
+            } catch (err) {
+                console.error("Erreur Supabase:", err);
+                document.body.classList.add('error');
+                uiIcon.innerText = "⚠️";
+                uiTitle.innerText = "Erreur réseau";
+                uiText.innerText = "Le point n'a pas pu être enregistré.";
+                retourScanner(3000);
             }
         }
+
+        function retourScanner(delai) {
+            setTimeout(() => {
+                window.location.href = `scanner.html?resto=${config.id}`;
+            }, delai);
+        }
+
+        // Lancement direct
+        validerPoint();
     </script>
 </body>
 </html>
