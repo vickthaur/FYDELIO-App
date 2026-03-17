@@ -6,11 +6,12 @@
     <title>Inscription - FIDDLE-App</title>
     
     <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #1e293b; /* Ardoise par défaut (FIDDLE-App) */
+            --primary: #1e293b; 
             --primary-glow: rgba(30, 41, 59, 0.1);
         }
 
@@ -25,7 +26,6 @@
             min-height: 100vh; 
             color: #1e293b; 
             padding: 20px;
-            /* Effet de profondeur avec un dégradé radial basé sur la couleur du resto */
             background-image: radial-gradient(circle at top right, var(--primary-glow) 0%, transparent 40%);
         }
         
@@ -38,27 +38,13 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.04); 
             text-align: center; 
             border: 1px solid rgba(0,0,0,0.05);
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-
-        .logo-placeholder { 
-            font-size: 48px; 
-            margin-bottom: 20px; 
-            display: block; 
-        }
+        .logo-placeholder { font-size: 48px; margin-bottom: 20px; display: block; }
         
         .restaurant-tag { 
-            font-size: 11px; 
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            color: #94a3b8; 
-            font-weight: 800; 
-            margin-bottom: 10px; 
+            font-size: 11px; text-transform: uppercase; letter-spacing: 3px; 
+            color: #94a3b8; font-weight: 800; margin-bottom: 10px; 
         }
 
         h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; color: #0f172a; letter-spacing: -1px; }
@@ -66,75 +52,39 @@
         .subtitle { font-size: 15px; color: #64748b; margin-bottom: 35px; line-height: 1.6; }
         .subtitle strong { color: var(--primary); font-weight: 700; }
 
-        /* Champs du Formulaire */
         .form-group { margin-bottom: 22px; text-align: left; }
         .form-group label { 
-            display: block; 
-            font-size: 11px; 
-            font-weight: 800; 
-            margin-bottom: 8px; 
-            color: #94a3b8; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            margin-left: 4px; 
+            display: block; font-size: 11px; font-weight: 800; margin-bottom: 8px; 
+            color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-left: 4px; 
         }
         
         .form-group input { 
-            width: 100%; 
-            padding: 16px 20px; 
-            border: 2px solid #f1f5f9; 
-            border-radius: 16px; 
-            font-family: inherit; 
-            font-size: 15px; 
-            font-weight: 500;
-            transition: all 0.25s ease; 
-            background-color: #f8fafc; 
+            width: 100%; padding: 16px 20px; border: 2px solid #f1f5f9; 
+            border-radius: 16px; font-family: inherit; font-size: 15px; font-weight: 500;
+            background-color: #f8fafc; transition: all 0.25s ease;
         }
 
         .form-group input:focus { 
-            outline: none; 
-            border-color: var(--primary); 
-            background-color: #fff; 
+            outline: none; border-color: var(--primary); background-color: #fff; 
             box-shadow: 0 0 0 5px var(--primary-glow); 
         }
 
         button { 
-            width: 100%; 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            padding: 18px; 
-            border-radius: 16px; 
-            font-size: 16px; 
-            font-weight: 800; 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            margin-top: 10px; 
-            box-shadow: 0 10px 25px var(--primary-glow);
+            width: 100%; background: var(--primary); color: white; border: none; 
+            padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 800; 
+            cursor: pointer; transition: all 0.3s ease; margin-top: 10px; 
         }
 
-        button:hover { 
-            transform: translateY(-3px); 
-            filter: brightness(1.1); 
-            box-shadow: 0 15px 30px var(--primary-glow); 
-        }
+        button:hover { transform: translateY(-3px); filter: brightness(1.1); }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
 
-        button:active { transform: translateY(-1px); }
-        button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .footer { 
-            font-size: 11px; 
-            color: #94a3b8; 
-            margin-top: 40px; 
-            line-height: 1.6; 
-        }
+        .footer { font-size: 11px; color: #94a3b8; margin-top: 40px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <div id="visual-icon" class="logo-placeholder">🎁</div>
-        
         <div class="restaurant-tag nom-resto">Chargement...</div>
         <h1>Bienvenue</h1>
         <p class="subtitle">
@@ -166,26 +116,55 @@
     </div>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            // Initialisation via config.js
+        document.addEventListener('DOMContentLoaded', () => {
             const config = appliquerConfig();
             const form = document.getElementById('form-inscription');
             const btn = document.getElementById('btn-submit');
             const visualIcon = document.getElementById('visual-icon');
 
-            // Vérification de la configuration
             if (config.id !== "default" && config.formInscription !== "#") {
                 form.action = config.formInscription;
-                
-                // Personnalisation de l'icône selon le restaurant
                 if (config.id === "villa_saint_antoine") visualIcon.innerHTML = "✨";
                 if (config.id === "bistrot") visualIcon.innerHTML = "🍴";
             } else {
-                // Mode Neutre (FIDDLE-App) : on bloque l'inscription
                 btn.disabled = true;
                 btn.innerText = "Sélectionnez un établissement";
-                visualIcon.innerHTML = "📱";
             }
+
+            // ⚡ LA MAGIE EST ICI : Intercepter le formulaire pour Supabase
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault(); // On met l'envoi vers Brevo en pause 1 seconde
+                
+                btn.innerText = "Création de votre carte...";
+                btn.disabled = true;
+
+                const emailSaisi = document.getElementById('email').value.trim().toLowerCase();
+                const prenomSaisi = document.getElementById('prenom').value.trim();
+
+                try {
+                    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    // 1. On vérifie si le client existe déjà
+                    const { data: existing } = await _supabase.from('clients').select('email').eq('email', emailSaisi).maybeSingle();
+
+                    // 2. S'il n'existe pas, on le crée ! (S'il existe, on le laisse tranquille)
+                    if (!existing) {
+                        await _supabase.from('clients').insert([{ 
+                            email: emailSaisi, 
+                            prenom: prenomSaisi 
+                        }]);
+                    } else {
+                        // S'il existe déjà mais qu'il se réinscrit, on met à jour son prénom
+                        await _supabase.from('clients').update({ prenom: prenomSaisi }).eq('email', emailSaisi);
+                    }
+                } catch (err) {
+                    console.error("Erreur d'inscription Supabase :", err);
+                    // On ne bloque pas le client s'il y a un souci, on continue
+                }
+
+                // 3. On libère le formulaire : ça part vers Brevo !
+                form.submit();
+            });
         });
     </script>
 
