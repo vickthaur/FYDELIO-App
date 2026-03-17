@@ -3,187 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - Programme de Fidélité</title>
+    <title>Inscription - Programme Fidélité</title>
     
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --primary: #1e293b; 
-            --primary-glow: rgba(30, 41, 59, 0.1);
-        }
-
+        :root { --primary: #1e293b; --primary-glow: rgba(30, 41, 59, 0.1); }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #f8fafc;
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            color: #1e293b; 
-            padding: 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc;
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; color: #1e293b; padding: 20px;
             background-image: radial-gradient(circle at top right, var(--primary-glow) 0%, transparent 40%);
         }
-        
         .card { 
-            background: #ffffff; 
-            width: 100%; 
-            max-width: 420px; 
-            border-radius: 32px; 
-            padding: 45px 35px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.04); 
-            text-align: center; 
-            border: 1px solid rgba(0,0,0,0.05);
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            background: #ffffff; width: 100%; max-width: 450px; border-radius: 32px; 
+            padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.04); 
+            text-align: center; border: 1px solid rgba(0,0,0,0.05);
         }
+        .restaurant-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: #94a3b8; font-weight: 800; margin-bottom: 10px; }
+        h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; color: #0f172a; letter-spacing: -1px; }
+        .subtitle { font-size: 14px; color: #64748b; margin-bottom: 30px; }
 
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
+        /* Formulaire sur 2 colonnes pour les petits champs */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
+        .full-width { grid-column: span 2; }
 
-        .logo-placeholder { font-size: 48px; margin-bottom: 20px; display: block; }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; margin-left: 4px; letter-spacing: 0.5px; }
+        .form-group input { width: 100%; padding: 14px 18px; border: 2px solid #f1f5f9; border-radius: 14px; font-size: 14px; font-family: inherit; background-color: #f8fafc; transition: 0.2s; }
+        .form-group input:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 4px var(--primary-glow); }
         
-        .restaurant-tag { 
-            font-size: 11px; text-transform: uppercase; letter-spacing: 3px; 
-            color: #94a3b8; font-weight: 800; margin-bottom: 10px; 
-        }
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--primary-glow); }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
 
-        h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; color: #0f172a; letter-spacing: -1px; }
-        
-        .subtitle { font-size: 15px; color: #64748b; margin-bottom: 35px; line-height: 1.6; }
-        .subtitle strong { color: var(--primary); font-weight: 700; }
-
-        /* Champs du Formulaire */
-        .form-group { margin-bottom: 22px; text-align: left; }
-        .form-group label { 
-            display: block; font-size: 11px; font-weight: 800; margin-bottom: 8px; 
-            color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-left: 4px; 
-        }
-        
-        .form-group input { 
-            width: 100%; padding: 16px 20px; border: 2px solid #f1f5f9; 
-            border-radius: 16px; font-family: inherit; font-size: 15px; font-weight: 500;
-            background-color: #f8fafc; transition: all 0.25s ease;
-        }
-
-        .form-group input:focus { 
-            outline: none; border-color: var(--primary); background-color: #fff; 
-            box-shadow: 0 0 0 5px var(--primary-glow); 
-        }
-
-        button { 
-            width: 100%; background: var(--primary); color: white; border: none; 
-            padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 800; 
-            cursor: pointer; transition: all 0.3s ease; margin-top: 10px; 
-        }
-
-        button:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 10px 25px var(--primary-glow); }
-        button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .footer { font-size: 11px; color: #94a3b8; margin-top: 40px; line-height: 1.6; }
+        .footer { font-size: 10px; color: #94a3b8; margin-top: 30px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div id="visual-icon" class="logo-placeholder">🎁</div>
+        <div id="visual-icon" style="font-size: 40px; margin-bottom: 15px;">✨</div>
         <div class="restaurant-tag nom-resto">Chargement...</div>
-        <h1>Bienvenue</h1>
-        <p class="subtitle">
-            Rejoignez notre programme pour profiter de votre avantage :<br>
-            <strong class="texte-recompense">Chargement de l'offre...</strong>
-        </p>
+        <h1>Créer ma carte</h1>
+        <p class="subtitle">Complétez votre profil pour recevoir vos cadeaux.</p>
 
         <form id="form-inscription" method="POST">
-            <div class="form-group">
-                <label for="prenom">Comment vous appelez-vous ?</label>
-                <input type="text" id="prenom" name="PRENOM" placeholder="Votre prénom" required>
-            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Prénom</label>
+                    <input type="text" id="prenom" name="PRENOM" placeholder="Jean" required>
+                </div>
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" id="nom" name="NOM" placeholder="Dupont" required>
+                </div>
 
-            <div class="form-group">
-                <label for="email">Votre Email</label>
-                <input type="email" id="email" name="EMAIL" placeholder="exemple@mail.com" required>
+                <div class="form-group full-width">
+                    <label>Votre Email</label>
+                    <input type="email" id="email" name="EMAIL" placeholder="jean@exemple.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Téléphone</label>
+                    <input type="tel" id="tel" name="SMS" placeholder="06 12 34 56 78" required>
+                </div>
+                <div class="form-group">
+                    <label>Anniversaire</label>
+                    <input type="date" id="anniv" name="BIRTHDAY" required>
+                </div>
             </div>
 
             <input type="hidden" name="email_address_check" value="">
             <input type="hidden" name="locale" value="fr">
 
-            <button type="submit" id="btn-submit">Recevoir ma carte 🚀</button>
+            <button type="submit" id="btn-submit">Valider mon inscription 🚀</button>
         </form>
 
         <div class="footer">
-            En vous inscrivant, vous recevrez votre carte de fidélité digitale par email.<br>
-            © <span class="nom-resto"></span> — <strong>FIDDLE-App</strong>
+            Vos données sont sécurisées et utilisées uniquement pour votre programme de fidélité.
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Initialisation via config.js
             const config = appliquerConfig();
             const form = document.getElementById('form-inscription');
             const btn = document.getElementById('btn-submit');
-            const visualIcon = document.getElementById('visual-icon');
 
-            // 2. Configuration selon le restaurant
-            if (config.id !== "default" && config.formInscription !== "#") {
-                form.action = config.formInscription;
-                if (config.id === "villa_saint_antoine") visualIcon.innerHTML = "✨";
-                if (config.id === "bistrot") visualIcon.innerHTML = "🍴";
-                
-                // Si des points de bienvenue sont offerts, on change le texte du bouton
-                if (config.pointsBienvenue > 0) {
-                    btn.innerText = `Obtenir ma carte (+${config.pointsBienvenue} pt offert) 🎁`;
-                }
-            } else {
-                // Mode Neutre (URL invalide)
-                btn.disabled = true;
-                btn.innerText = "Sélectionnez un établissement";
-            }
+            if (config.id !== "default") form.action = config.formInscription;
 
-            // 3. ⚡ MOTEUR D'ENREGISTREMENT SUPABASE + BREVO
             form.addEventListener('submit', async function(e) {
-                e.preventDefault(); // On met Brevo en pause une seconde
-                
-                btn.innerText = "Création de votre profil...";
+                e.preventDefault(); 
+                btn.innerText = "Synchronisation...";
                 btn.disabled = true;
 
                 const emailSaisi = document.getElementById('email').value.trim().toLowerCase();
                 const prenomSaisi = document.getElementById('prenom').value.trim();
+                const nomSaisi = document.getElementById('nom').value.trim();
+                const telSaisi = document.getElementById('tel').value.trim();
+                const annivSaisi = document.getElementById('anniv').value;
 
                 try {
                     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
-                    // --- ETAPE A : LE CRM (Table clients) ---
-                    const { data: existingClient } = await _supabase.from('clients').select('email').eq('email', emailSaisi).maybeSingle();
+                    // 1. Mise à jour du CRM complet
+                    await _supabase.from('clients').upsert({ 
+                        email: emailSaisi, 
+                        prenom: prenomSaisi,
+                        nom: nomSaisi,
+                        telephone: telSaisi,
+                        date_anniversaire: annivSaisi,
+                        restaurant_origine: config.id
+                    });
 
-                    if (!existingClient) {
-                        // Nouveau client : on l'ajoute au CRM global
-                        await _supabase.from('clients').insert([{ 
-                            email: emailSaisi, 
-                            prenom: prenomSaisi,
-                            restaurant_origine: config.id
-                        }]);
-                    } else {
-                        // Client existant : on met juste à jour son prénom au cas où
-                        await _supabase.from('clients').update({ prenom: prenomSaisi }).eq('email', emailSaisi);
-                    }
-
-                    // --- ETAPE B : LE COMPTEUR DE POINTS (Table points) ---
-                    const { data: existingPoints } = await _supabase.from('points')
+                    // 2. Initialisation des points
+                    const { data: rowPoints } = await _supabase.from('points')
                         .select('id')
                         .eq('client_email', emailSaisi)
                         .eq('restaurant_id', config.id)
                         .maybeSingle();
 
-                    if (!existingPoints) {
-                        // On initialise son compteur pour CE restaurant (avec ou sans points de bienvenue)
+                    if (!rowPoints) {
                         await _supabase.from('points').insert([{
                             client_email: emailSaisi,
                             restaurant_id: config.id,
@@ -192,15 +136,13 @@
                     }
 
                 } catch (err) {
-                    console.error("Erreur de synchronisation Supabase :", err);
-                    // Même s'il y a un micro-bug réseau, on ne bloque pas le client !
+                    console.error("Erreur CRM Supabase :", err);
                 }
 
-                // 4. On libère le formulaire : Les données partent chez Brevo pour déclencher l'email !
+                // 3. Envoi final vers Brevo
                 form.submit();
             });
         });
     </script>
-
 </body>
 </html>
