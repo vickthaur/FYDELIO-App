@@ -3,175 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validation - FIDDLE</title>
+    <title>Validation - FIDDLE App</title>
     
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root { --primary: #1e293b; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0f172a; 
-            color: white; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            text-align: center; 
-            transition: background-color 0.4s ease;
+            background-color: #0f172a; color: white; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; text-align: center; 
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
         }
 
         .validation-box {
-            padding: 40px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 32px;
-            border: 1px solid rgba(255,255,255,0.1);
-            max-width: 320px;
-            width: 100%;
+            padding: 40px; background: rgba(255,255,255,0.05);
+            border-radius: 32px; border: 1px solid rgba(255,255,255,0.1);
+            max-width: 340px; width: 100%;
             box-shadow: 0 25px 50px rgba(0,0,0,0.3);
             backdrop-filter: blur(10px);
-            transform: scale(0.95);
-            opacity: 0;
+            transform: scale(0.95); opacity: 0;
             animation: popIn 0.5s forwards cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes popIn { to { transform: scale(1); opacity: 1; } }
 
-        .icon { font-size: 48px; margin-bottom: 20px; display: block; }
+        .icon { font-size: 55px; margin-bottom: 15px; display: block; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2)); }
         h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; }
-        p { color: rgba(255,255,255,0.7); font-size: 15px; font-weight: 700; }
+        p { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 600; line-height: 1.4; }
         
         .score-display { 
-            font-size: 64px; 
-            font-weight: 800; 
-            color: white; 
-            margin: 20px 0; 
-            display: none;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            font-size: 70px; font-weight: 800; color: white; 
+            margin: 20px 0 10px 0; display: none;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            line-height: 1;
         }
 
-        /* Classes d'état */
-        body.success { background-color: #10b981; } /* Vert émeraude */
-        body.error { background-color: #ef4444; }   /* Rouge erreur */
-        body.reward { background-color: #f59e0b; }  /* Or pour cadeau */
+        /* Le Code Couleur pour le Serveur */
+        body.success { background-color: #10b981; } /* Vert : +1 Point */
+        body.error { background-color: #ef4444; }   /* Rouge : Problème technique */
+        body.reward { background-color: #f59e0b; }  /* Or : Cadeau à donner ! */
+        body.warning { background-color: #f97316; } /* Orange : Anti-fraude bloqué */
     </style>
 </head>
 <body>
 
     <div class="validation-box" id="ui-box">
         <span class="icon" id="ui-icon">⏳</span>
-        <h1 id="ui-title">Traitement...</h1>
-        <p id="ui-text">Connexion à la base de données</p>
+        <h1 id="ui-title">Vérification...</h1>
+        <p id="ui-text">Sécurisation des données</p>
         <div class="score-display" id="ui-score">0</div>
     </div>
 
     <script>
-        const config = appliquerConfig();
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        const params = new URLSearchParams(window.location.search);
-        const email = params.get('email');
+        document.addEventListener('DOMContentLoaded', () => {
+            const config = appliquerConfig();
+            const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const params = new URLSearchParams(window.location.search);
+            const email = params.get('email');
 
-        async function validerPoint() {
-            const uiBox = document.getElementById('ui-box');
+            // Éléments UI
             const uiIcon = document.getElementById('ui-icon');
             const uiTitle = document.getElementById('ui-title');
             const uiText = document.getElementById('ui-text');
             const uiScore = document.getElementById('ui-score');
 
-            if (!email) {
-                document.body.classList.add('error');
-                uiIcon.innerText = "❌";
-                uiTitle.innerText = "Erreur";
-                uiText.innerText = "Email introuvable dans le QR Code.";
-                retourScanner(3000);
-                return;
+            // Redirection automatique vers le scanner
+            function retourScanner(delai) {
+                setTimeout(() => {
+                    window.location.href = `scanner.html?resto=${config.id}`;
+                }, delai);
             }
 
-            try {
-                // 1. On cherche le client dans Supabase
-                let { data: client, error: readError } = await _supabase
-                    .from('clients')
-                    .select('*')
-                    .eq('email', email)
-                    .single();
-                
-                let pointsActuels = 0;
-
-                // 2. S'il n'existe pas, on le crée (Upsert implicite)
-                if (!client) {
-                    const { error: insertError } = await _supabase
-                        .from('clients')
-                        .insert([{ email: email, prenom: 'Client' }]); // Brevo gérera le vrai prénom plus tard
-                    pointsActuels = 0;
-                } else {
-                    pointsActuels = client[config.colonne_points] || 0;
+            async function traiterScan() {
+                if (!email) {
+                    document.body.classList.add('error');
+                    uiIcon.innerText = "❌"; uiTitle.innerText = "Erreur"; uiText.innerText = "QR Code illisible ou email manquant.";
+                    return retourScanner(3000);
                 }
 
-                // 3. Calcul du nouveau score
-                let nouveauScore;
-                let estCadeau = false;
+                try {
+                    // 1. VÉRIFICATION CRM (Création si le client n'existe pas du tout)
+                    const { data: client } = await _supabase.from('clients').select('email').eq('email', email).maybeSingle();
+                    if (!client) {
+                        await _supabase.from('clients').insert([{ email: email, prenom: 'Client', restaurant_origine: config.id }]);
+                    }
 
-                if (pointsActuels >= config.seuilPoints) {
-                    // Remise à zéro s'il avait atteint le seuil (il vient chercher son cadeau)
-                    nouveauScore = 1; 
-                    estCadeau = true;
-                } else {
-                    nouveauScore = pointsActuels + 1;
-                    if (nouveauScore === config.seuilPoints) estCadeau = true;
+                    // 2. LECTURE DU COMPTEUR DE POINTS
+                    const { data: pointsRecord } = await _supabase.from('points')
+                        .select('*')
+                        .eq('client_email', email)
+                        .eq('restaurant_id', config.id)
+                        .maybeSingle();
+
+                    let scoreActuel = 0;
+                    
+                    // 3. BOUCLIER ANTI-FRAUDE 🛡️
+                    if (pointsRecord && pointsRecord.derniere_visite && config.delaiAntiFraudeHeures > 0) {
+                        const derniereVisite = new Date(pointsRecord.derniere_visite);
+                        const maintenant = new Date();
+                        const heuresEcoulees = (maintenant - derniereVisite) / (1000 * 60 * 60);
+
+                        if (heuresEcoulees < config.delaiAntiFraudeHeures) {
+                            document.body.classList.add('warning');
+                            uiIcon.innerText = "⏱️";
+                            uiTitle.innerText = "Trop Tôt";
+                            uiText.innerText = `Ce client a déjà été scanné il y a moins de ${config.delaiAntiFraudeHeures}h.`;
+                            return retourScanner(3500); // On bloque et on renvoie à la caméra
+                        }
+                    }
+
+                    if (pointsRecord) {
+                        scoreActuel = pointsRecord.total_points;
+                    }
+
+                    // 4. CALCUL DU NOUVEAU SCORE
+                    let nouveauScore;
+                    let estCadeau = false;
+
+                    if (scoreActuel >= config.seuilPoints) {
+                        nouveauScore = 1; // Le client vient réclamer son cadeau, on repart un nouveau cycle à 1
+                        estCadeau = true;
+                    } else {
+                        nouveauScore = scoreActuel + 1;
+                        if (nouveauScore === config.seuilPoints) estCadeau = true; // Il vient d'atteindre le palier !
+                    }
+
+                    // 5. SAUVEGARDE DANS SUPABASE (Mise à jour ou Insertion)
+                    const dateISO = new Date().toISOString();
+                    
+                    if (pointsRecord) {
+                        // Mise à jour de la ligne existante
+                        await _supabase.from('points')
+                            .update({ total_points: nouveauScore, derniere_visite: dateISO })
+                            .eq('id', pointsRecord.id);
+                    } else {
+                        // Création du premier compteur pour ce resto
+                        await _supabase.from('points')
+                            .insert([{ 
+                                client_email: email, 
+                                restaurant_id: config.id, 
+                                total_points: nouveauScore,
+                                derniere_visite: dateISO
+                            }]);
+                    }
+
+                    // 6. AFFICHAGE DU RÉSULTAT AU SERVEUR
+                    if (estCadeau) {
+                        document.body.classList.add('reward');
+                        uiIcon.innerText = "🎁";
+                        uiTitle.innerText = "CADEAU !";
+                        uiText.innerText = "Offrez la récompense au client !";
+                    } else {
+                        document.body.classList.add('success');
+                        uiIcon.innerText = "✅";
+                        uiTitle.innerText = "Validé !";
+                        uiText.innerText = "Point ajouté avec succès.";
+                    }
+
+                    uiScore.style.display = "block";
+                    uiScore.innerText = nouveauScore;
+                    
+                    // Le serveur voit le succès pendant 2.5 secondes puis ça repart sur la caméra
+                    retourScanner(2500);
+
+                } catch (err) {
+                    console.error("Erreur critique:", err);
+                    document.body.classList.add('error');
+                    uiIcon.innerText = "⚠️"; uiTitle.innerText = "Erreur réseau"; uiText.innerText = "Le point n'a pas pu être enregistré.";
+                    retourScanner(3000);
                 }
-
-                // 4. Mise à jour dans Supabase
-                const updateObj = {};
-                updateObj[config.colonne_points] = nouveauScore;
-
-                const { error: updateError } = await _supabase
-                    .from('clients')
-                    .update(updateObj)
-                    .eq('email', email);
-
-                if (updateError) throw updateError;
-
-                // 5. Affichage du succès (Vert)
-                if (estCadeau) {
-                    document.body.classList.add('reward');
-                    uiIcon.innerText = "🎁";
-                    uiTitle.innerText = "CADEAU !";
-                    uiText.innerText = "Le client a droit à sa récompense.";
-                } else {
-                    document.body.classList.add('success');
-                    uiIcon.innerText = "✅";
-                    uiTitle.innerText = "Validé !";
-                    uiText.innerText = "Point ajouté avec succès.";
-                }
-
-                uiScore.style.display = "block";
-                uiScore.innerText = nouveauScore;
-                
-                // Retour auto à la caméra
-                retourScanner(2000);
-
-            } catch (err) {
-                console.error("Erreur Supabase:", err);
-                document.body.classList.add('error');
-                uiIcon.innerText = "⚠️";
-                uiTitle.innerText = "Erreur réseau";
-                uiText.innerText = "Le point n'a pas pu être enregistré.";
-                retourScanner(3000);
             }
-        }
 
-        function retourScanner(delai) {
-            setTimeout(() => {
-                window.location.href = `scanner.html?resto=${config.id}`;
-            }, delai);
-        }
-
-        // Lancement direct
-        validerPoint();
+            // On lance la machine
+            traiterScan();
+        });
     </script>
 </body>
 </html>
