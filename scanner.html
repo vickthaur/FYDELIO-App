@@ -3,215 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Serveur - FIDDLE</title>
+    <title>Scanner Serveur - FIDDLE-App</title>
     
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
+            --primary: #1e293b; 
+            --primary-glow: rgba(30, 41, 59, 0.3);
             --bg-color: #0b0d12;
-            --card-bg: rgba(30, 34, 43, 0.7);
-            --primary: #ff7675; 
-            --primary-glow: rgba(255, 118, 117, 0.3);
-            --success: #10b981;
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
         }
 
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background: var(--bg-color); 
-            color: var(--text-main); 
+            color: white; 
             text-align: center; 
-            padding: 40px 20px; 
             margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
             background-image: radial-gradient(circle at top, #1a1f2e 0%, var(--bg-color) 70%);
-            overflow-x: hidden;
         }
 
-        .header-title {
-            margin-bottom: 30px;
-            animation: fadeInDown 0.6s ease-out;
+        .header {
+            padding: 40px 20px 20px;
+            width: 100%;
+            z-index: 10;
         }
 
-        .header-title h1 { 
-            font-size: 24px; 
+        .header p {
+            font-size: 11px;
             font-weight: 800;
-            margin: 0 0 5px 0; 
-            letter-spacing: -0.5px;
-        }
-
-        .header-title p {
-            margin: 0;
-            font-size: 13px;
-            color: var(--primary);
-            font-weight: 700;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 8px;
         }
 
-        /* ----- SCANNER UI ----- */
+        h1 { font-size: 24px; font-weight: 800; margin: 0; }
+
+        /* Style du conteneur de scan */
         #reader { 
             width: 100%; 
-            max-width: 380px; 
-            background: var(--card-bg);
+            max-width: 420px; 
+            background: rgba(30, 34, 43, 0.7);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             border-radius: 32px; 
             overflow: hidden; 
-            border: 1px solid rgba(255,255,255,0.08) !important; 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4); 
-            padding-bottom: 15px;
-            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255,255,255,0.1) !important; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); 
+            margin-top: 10px;
         }
 
-        /* Nettoyage de l'interface native du plugin (Mais on garde le bouton image !) */
-        #reader a { display: none; }
-        #reader__dashboard_section_csr span { color: var(--text-muted) !important; font-size: 13px; }
-        #reader__dashboard_section_swaplink { display: inline-block !important; color: var(--primary) !important; font-weight: 600; text-decoration: none; margin-top: 10px; }
-
-        #reader select {
-            background: rgba(0,0,0,0.4);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px;
-            border-radius: 14px;
-            font-family: inherit;
-            font-size: 14px;
-            margin-bottom: 15px;
-            width: 85%;
-            outline: none;
+        /* Personnalisation des boutons et textes internes au plugin */
+        #reader__scan_region { background: #000; }
+        #reader__dashboard_section_csr button, #reader__dashboard_section_swaplink {
+            background: var(--primary) !important;
+            color: white !important;
+            border: none !important;
+            padding: 14px 24px !important;
+            border-radius: 14px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            font-size: 13px !important;
+            cursor: pointer !important;
+            margin: 10px !important;
         }
+        
+        #reader__status_span { color: #94a3b8 !important; font-size: 14px !important; }
 
-        #reader button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 16px;
-            font-family: inherit;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin: 10px 5px;
-            box-shadow: 0 8px 20px var(--primary-glow);
-        }
-
-        #reader button:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
-
-        #reader__scan_region {
-            border-radius: 32px 32px 0 0;
-            overflow: hidden;
-            background: #000;
-        }
-
-        /* ----- BARRE DE STATUT ----- */
-        .status { 
-            margin-top: 35px; 
+        .status-bar { 
+            margin-top: 30px; 
             padding: 14px 28px; 
             border-radius: 100px; 
             background: rgba(255,255,255,0.03); 
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .status-dot {
+        .dot {
             width: 10px;
             height: 10px;
             background: var(--primary);
             border-radius: 50%;
-            box-shadow: 0 0 12px var(--primary);
-            animation: pulse 1.8s infinite;
+            box-shadow: 0 0 10px var(--primary);
+            animation: pulse 1.5s infinite;
         }
 
-        .status.success-mode {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .status.success-mode .status-dot {
-            background: var(--success);
-            box-shadow: 0 0 15px var(--success);
-            animation: none;
-        }
-
-        /* ----- ANIMATIONS ----- */
-        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.6; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.6; } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-    <div class="header-title">
-        <p>Interface Serveur</p>
+    <div class="header">
+        <p>FIDDLE-App — Serveur</p>
         <h1 class="nom-resto">Chargement...</h1>
     </div>
 
     <div id="reader"></div>
 
-    <div id="status" class="status">
-        <div class="status-dot"></div>
-        <span id="status-text">Prêt pour le scan</span>
+    <div class="status-bar">
+        <div class="dot"></div>
+        <span id="status-text">Prêt pour le scan client</span>
     </div>
 
     <script>
-        let clientConfig = { id: "bistrot" };
-        
-        // On attend que la config soit chargée pour initialiser
-        window.addEventListener('load', () => {
-            if (typeof appliquerConfig === "function") {
-                try {
-                    clientConfig = appliquerConfig();
-                } catch (e) {
-                    console.error("Erreur de chargement de la config :", e);
-                }
-            }
-        });
+        // 1. On charge la config
+        const config = appliquerConfig();
 
         function onScanSuccess(decodedText) {
-            const statusDiv = document.getElementById('status');
             const statusText = document.getElementById('status-text');
-            
-            // Effet visuel immédiat
-            statusDiv.classList.add('success-mode');
             statusText.innerText = "Code détecté !";
+            statusText.style.color = "#10b981";
 
-            // On arrête le scanner proprement avant de partir
+            // 2. Nettoyage du scanner et redirection
+            // On passe l'email (le texte scanné) et le resto actuel vers valider.html
             html5QrcodeScanner.clear().then(() => {
-                // Redirection vers valider.html avec les bons paramètres !
                 const emailEncoded = encodeURIComponent(decodedText.trim());
-                window.location.href = `valider.html?resto=${clientConfig.id}&email=${emailEncoded}`;
-            }).catch(err => {
-                // Si le clear échoue, on force quand même la redirection
-                window.location.href = `valider.html?resto=${clientConfig.id}&email=${encodeURIComponent(decodedText.trim())}`;
+                window.location.href = `valider.html?resto=${config.id}&email=${emailEncoded}`;
+            }).catch(error => {
+                // En cas d'erreur de clear, on force quand même la redirection
+                window.location.href = `valider.html?resto=${config.id}&email=${encodeURIComponent(decodedText.trim())}`;
             });
         }
 
-        // Config technique pour la fluidité
+        // 3. Lancement du scanner (Configuration technique fluide)
         let html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
-            fps: 20, 
-            qrbox: { width: 250, height: 250 }, 
-            aspectRatio: 1.0,
-            showTorchButtonIfSupported: true 
+            fps: 20, // Plus de FPS pour une détection instantanée
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
         });
-        
+
         html5QrcodeScanner.render(onScanSuccess);
     </script>
 </body>
