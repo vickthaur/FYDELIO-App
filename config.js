@@ -1,22 +1,23 @@
 /**
- * 🎯 CONFIGURATION GÉNÉRALE - FIDDLE-App
- * Ce fichier est le point central de l'application. 
- * Il gère l'aiguillage des données Brevo et Google Scripts.
+ * 🎯 CONFIGURATION SUPABASE - FIDDLE-App
+ * Ce fichier centralise l'intelligence du système et la connexion à la base de données.
  */
 
+// 🔑 CLÉS API SUPABASE (Sécurisées pour la lecture/écriture publique de ta table)
+const SUPABASE_URL = "https://qawfwbppnbnskxlkwstu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_EbKZkPjtT8rwkEdw3oVRCg_mBJJ_gNJ";
+
 const agenceClients = {
-    // ⚪ CONFIGURATION NEUTRE (FIDDLE-App)
+    // ⚪ ÉTAT NEUTRE (Si aucun restaurant n'est spécifié)
     "default": {
         id: "default",
         nom: "FIDDLE-App",
-        couleur: "#1e293b", 
+        couleur: "#1e293b", // Slate neutre
         seuilPoints: 10,
         recompense: "Sélectionnez un établissement",
         logo: "https://vickthaur.github.io/FIDDLE-App/logo-agence.png",
         formInscription: "#",
-        formValidation: "#",
-        scriptLecture: "https://script.google.com/macros/s/AKfycbwoxE7XJqDDRMleJXAk0CWwygf7UAxnr6-glE8nNrb0KW6CPmh1XV0gGFCI5YZCThk3Gw/exec",
-        scriptValidation: "https://script.google.com/macros/s/AKfycbwTxfO5D8QRtKMfVfnIokB2tag43M2gbnSsEMqy3r5duTx0UibOqYftRiNrsyTb0bMj4A/exec"
+        colonne_points: null // Pas de points en mode neutre
     },
 
     // 🔴 CLIENT : LE BISTROT
@@ -27,10 +28,9 @@ const agenceClients = {
         seuilPoints: 5,
         recompense: "5 points = 1 Dessert Offert 🍰",
         logo: "https://vickthaur.github.io/FIDDLE-App/logo-bistrot.png",
+        // On garde Brevo UNIQUEMENT pour l'inscription et l'envoi de mail
         formInscription: "https://9d65705b.sibforms.com/serve/MUIFANfE1Ud8qtliFwPa28l2_ezu8uq3LYTQgyIt1FJdCu6ADCk_qAvGFPQSFp6HtEVLnsSSBWPY0iWuOOLkQD9PtOzEg4zLN0fuwTKabJS3y5yW2LPzsf2FhbihtwWgWsAsrIamq8lCQvUuxIOb6Cn6zN8x4QyFFwDvc_x03QZONNextkyrknz6Uqew8VmYb2VoF5aYAXjhiNuf6A==",
-        formValidation: "https://9d65705b.sibforms.com/serve/MUIFADjqIProT_Cl28inJrj0bX2b4zK_XA-Ov9LDV2gWtskwsKQ7VVo09QVM5hlDGzylzy6392uTx_swkr0hHIW_VqQybc45jJR5TbzoCVHjs8OaZqF1BF4j-j2hbOTYyNbscvcENAbY2zKv6QDi8hTpGkzLbe-2Ng8qNIkZaPO7yAU4sy6CCAxOAZhIpb1H-gBjsPxIEeL9bWuUsg==",
-        scriptLecture: "https://script.google.com/macros/s/AKfycbwoxE7XJqDDRMleJXAk0CWwygf7UAxnr6-glE8nNrb0KW6CPmh1XV0gGFCI5YZCThk3Gw/exec",
-        scriptValidation: "https://script.google.com/macros/s/AKfycbwTxfO5D8QRtKMfVfnIokB2tag43M2gbnSsEMqy3r5duTx0UibOqYftRiNrsyTb0bMj4A/exec"
+        colonne_points: "points_bistrot" // 🎯 Le nom exact de la colonne dans Supabase
     },
 
     // 🟡 CLIENT : VILLA SAINT ANTOINE
@@ -41,16 +41,15 @@ const agenceClients = {
         seuilPoints: 10,
         recompense: "10 points = 1 Cocktail Signature 🍸",
         logo: "https://vickthaur.github.io/FIDDLE-App/logo-villa.png",
+        // On garde Brevo UNIQUEMENT pour l'inscription et l'envoi de mail
         formInscription: "https://9d65705b.sibforms.com/serve/MUIFAPNZrGyP3i0xNF-FdppNziEkhvnAiLtRY8uUfol3hxIyq6VHE11ofNd5fjQp_Iq7tjv6nklXAhjOPj_Le1u6Wxz_U2NCQLtoBMgkuGrjRNvCwMzFg7KcWEyXIcW-JPoDtL2QizWiwcOJl5-G96lbhakbnyeJT1cxI_8ZV4SVOfBt8CDOHTGIi-KdJSAAPTHMADTN5Gyt8PgqdA==",
-        formValidation: "https://9d65705b.sibforms.com/serve/MUIFAJDcz_H5hCbvQ9g1SOqKVyAo5fIPRSH5Av5deHgtWT5pF0ZkzbdcnwySESsegIdFuxzkw8rMMZkfiUMzvAMDfIaGzl42YBw1P3Fw1H1Z6B914_I3TwYpVPNWMv0nqARUMZI8bG2Cja6rYBZ6EAkXhGLetQKjHnDCX4EP0I8Gv7Te36b1rLjJiUI4Fas-3uxA1-XpotgR3ujdWg==",
-        scriptLecture: "https://script.google.com/macros/s/AKfycbwoxE7XJqDDRMleJXAk0CWwygf7UAxnr6-glE8nNrb0KW6CPmh1XV0gGFCI5YZCThk3Gw/exec",
-        scriptValidation: "https://script.google.com/macros/s/AKfycbwTxfO5D8QRtKMfVfnIokB2tag43M2gbnSsEMqy3r5duTx0UibOqYftRiNrsyTb0bMj4A/exec"
+        colonne_points: "points_villa" // 🎯 Le nom exact de la colonne dans Supabase
     }
 };
 
 /**
  * MOTEUR DE CONFIGURATION
- * Extrait le restaurant de l'URL (?resto=...) et applique les styles/liens.
+ * Extrait le restaurant de l'URL (?resto=...) et applique les styles
  */
 function appliquerConfig() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -59,7 +58,7 @@ function appliquerConfig() {
     // On récupère les données du client ou le mode par défaut
     const config = agenceClients[restoID] || agenceClients["default"];
 
-    // Application des couleurs et styles dynamiques
+    // Application des couleurs et styles dynamiques (Variables CSS)
     document.documentElement.style.setProperty('--primary', config.couleur);
     document.documentElement.style.setProperty('--primary-glow', config.couleur + '4D'); 
 
