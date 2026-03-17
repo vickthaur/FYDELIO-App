@@ -41,7 +41,8 @@ const agenceClients = {
         recompense: "10 points = 1 Cocktail Signature 🍸",
         pointsBienvenue: 1, // 🎁 Offre 1 point dès l'inscription !
         
-       
+       // 🛡️ Sécurité Anti-Fraude
+        delaiAntiFraudeHeures: 8, // Verrouille le compte : 8 heures d'attente requises entre deux scans
         
         // 🔗 Liens
         formInscription: "https://9d65705b.sibforms.com/serve/MUIFAPNZrGyP3i0xNF-FdppNziEkhvnAiLtRY8uUfol3hxIyq6VHE11ofNd5fjQp_Iq7tjv6nklXAhjOPj_Le1u6Wxz_U2NCQLtoBMgkuGrjRNvCwMzFg7KcWEyXIcW-JPoDtL2QizWiwcOJl5-G96lbhakbnyeJT1cxI_8ZV4SVOfBt8CDOHTGIi-KdJSAAPTHMADTN5Gyt8PgqdA==",
