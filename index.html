@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Club Fidélité - Inscription</title>
+    <title>Inscription - FIDDLE-App</title>
     
     <script src="config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #e63946; /* Valeur par défaut, surchargée par config.js */
-            --primary-glow: rgba(230, 57, 70, 0.1);
+            --primary: #1e293b; /* Ardoise par défaut (FIDDLE-App) */
+            --primary-glow: rgba(30, 41, 59, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,7 +25,7 @@
             min-height: 100vh; 
             color: #1e293b; 
             padding: 20px;
-            /* Effet de lumière diffuse en haut à droite */
+            /* Effet de profondeur avec un dégradé radial basé sur la couleur du resto */
             background-image: radial-gradient(circle at top right, var(--primary-glow) 0%, transparent 40%);
         }
         
@@ -33,18 +33,24 @@
             background: #ffffff; 
             width: 100%; 
             max-width: 420px; 
-            border-radius: 28px; 
+            border-radius: 32px; 
             padding: 45px 35px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.04); 
             text-align: center; 
-            position: relative; 
             border: 1px solid rgba(0,0,0,0.05);
             animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(30px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
 
-        .logo-icon { font-size: 50px; margin-bottom: 10px; display: block; }
+        .logo-placeholder { 
+            font-size: 48px; 
+            margin-bottom: 20px; 
+            display: block; 
+        }
         
         .restaurant-tag { 
             font-size: 11px; 
@@ -52,7 +58,7 @@
             letter-spacing: 3px; 
             color: #94a3b8; 
             font-weight: 800; 
-            margin-bottom: 20px; 
+            margin-bottom: 10px; 
         }
 
         h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; color: #0f172a; letter-spacing: -1px; }
@@ -60,9 +66,18 @@
         .subtitle { font-size: 15px; color: #64748b; margin-bottom: 35px; line-height: 1.6; }
         .subtitle strong { color: var(--primary); font-weight: 700; }
 
-        /* Formulaire */
-        .form-group { margin-bottom: 20px; text-align: left; }
-        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #334155; margin-left: 5px; }
+        /* Champs du Formulaire */
+        .form-group { margin-bottom: 22px; text-align: left; }
+        .form-group label { 
+            display: block; 
+            font-size: 11px; 
+            font-weight: 800; 
+            margin-bottom: 8px; 
+            color: #94a3b8; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            margin-left: 4px; 
+        }
         
         .form-group input { 
             width: 100%; 
@@ -72,7 +87,7 @@
             font-family: inherit; 
             font-size: 15px; 
             font-weight: 500;
-            transition: all 0.2s ease; 
+            transition: all 0.25s ease; 
             background-color: #f8fafc; 
         }
 
@@ -94,38 +109,38 @@
             font-weight: 800; 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            margin-top: 15px; 
-            box-shadow: 0 10px 20px var(--primary-glow);
+            margin-top: 10px; 
+            box-shadow: 0 10px 25px var(--primary-glow);
         }
 
-        button:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 15px 30px var(--primary-glow); }
+        button:hover { 
+            transform: translateY(-3px); 
+            filter: brightness(1.1); 
+            box-shadow: 0 15px 30px var(--primary-glow); 
+        }
+
         button:active { transform: translateY(-1px); }
         button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        #error-box { 
-            display: none; 
-            background: #fff1f2; 
-            color: #e11d48; 
-            padding: 12px; 
-            border-radius: 12px; 
-            font-size: 13px; 
-            font-weight: 600; 
-            margin-bottom: 20px; 
+        .footer { 
+            font-size: 11px; 
+            color: #94a3b8; 
+            margin-top: 40px; 
+            line-height: 1.6; 
         }
-
-        .footer { font-size: 11px; color: #94a3b8; margin-top: 35px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div id="resto-icon" class="logo-icon">🎁</div>
-        <div class="restaurant-tag nom-resto">Chargement...</div>
+        <div id="visual-icon" class="logo-placeholder">🎁</div>
         
-        <h1>Bienvenue au Club</h1>
-        <p class="subtitle">Inscrivez-vous pour débloquer votre offre :<br><strong class="texte-recompense">Chargement de l'offre...</strong></p>
-
-        <div id="error-box"></div>
+        <div class="restaurant-tag nom-resto">Chargement...</div>
+        <h1>Bienvenue</h1>
+        <p class="subtitle">
+            Rejoignez notre programme pour profiter de votre avantage :<br>
+            <strong class="texte-recompense">Chargement de l'offre...</strong>
+        </p>
 
         <form id="form-inscription" method="POST">
             <div class="form-group">
@@ -134,57 +149,45 @@
             </div>
 
             <div class="form-group">
-                <label for="email">Votre meilleur Email</label>
+                <label for="email">Votre Email</label>
                 <input type="email" id="email" name="EMAIL" placeholder="exemple@mail.com" required>
             </div>
 
             <input type="hidden" name="email_address_check" value="">
             <input type="hidden" name="locale" value="fr">
 
-            <button type="submit" id="btn-submit" disabled>Rejoindre le Club ✨</button>
+            <button type="submit" id="btn-submit">Gagner mon 1er point 🚀</button>
         </form>
 
         <div class="footer">
-            En rejoignant notre club, vous acceptez de recevoir vos avantages par mail.<br>
-            © <span class="nom-resto"></span>
+            En vous inscrivant, vous recevrez votre carte de fidélité digitale par email.<br>
+            © <span class="nom-resto"></span> — <strong>FIDDLE-App</strong>
         </div>
     </div>
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
+            // Initialisation via config.js
+            const config = appliquerConfig();
             const form = document.getElementById('form-inscription');
             const btn = document.getElementById('btn-submit');
-            const errorBox = document.getElementById('error-box');
+            const visualIcon = document.getElementById('visual-icon');
 
-            try {
-                // 1. Appel du cerveau config.js
-                const config = appliquerConfig();
-
-                if (config && config.formInscription) {
-                    // 2. On branche le formulaire sur le bon Brevo
-                    form.action = config.formInscription;
-                    
-                    // 3. On personnalise l'icône selon le resto
-                    const iconEl = document.getElementById('resto-icon');
-                    if (config.id === "villa_saint_antoine") {
-                        iconEl.innerHTML = "✨";
-                    } else {
-                        iconEl.innerHTML = "🍴";
-                    }
-
-                    // 4. On active le bouton
-                    btn.disabled = false;
-                    btn.innerHTML = "Gagner mon 1er point 🚀";
-
-                } else {
-                    throw new Error("Lien Brevo manquant dans config.js");
-                }
-            } catch (err) {
-                errorBox.style.display = "block";
-                errorBox.innerText = "⚠️ Erreur de configuration : " + err.message;
-                console.error(err);
+            // Vérification de la configuration
+            if (config.id !== "default" && config.formInscription !== "#") {
+                form.action = config.formInscription;
+                
+                // Personnalisation de l'icône selon le restaurant
+                if (config.id === "villa_saint_antoine") visualIcon.innerHTML = "✨";
+                if (config.id === "bistrot") visualIcon.innerHTML = "🍴";
+            } else {
+                // Mode Neutre (FIDDLE-App) : on bloque l'inscription
+                btn.disabled = true;
+                btn.innerText = "Sélectionnez un établissement";
+                visualIcon.innerHTML = "📱";
             }
         });
     </script>
+
 </body>
 </html>
