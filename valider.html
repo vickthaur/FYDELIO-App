@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validation Fiddle</title>
+    <title>Validation - FIDDLE-App</title>
     
     <script src="config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
@@ -11,7 +11,6 @@
     <style>
         :root {
             --primary: #ffffff;
-            --primary-glow: rgba(255, 255, 255, 0.2);
             --success: #10b981;
             --error: #ef4444;
         }
@@ -26,7 +25,7 @@
             background-color: #0b0d12; 
             color: white; 
             text-align: center; 
-            transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
             overflow: hidden; 
         }
 
@@ -38,8 +37,8 @@
             width: 85%;
             max-width: 400px;
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             animation: popIn 0.5s ease-out; 
         }
@@ -72,24 +71,22 @@
 
         .btn-retour { 
             margin-top: 30px; 
-            padding: 15px 35px; 
+            padding: 16px 35px; 
             border: none; 
             border-radius: 16px; 
             background: white; 
             color: #000; 
             font-size: 15px; 
-            font-weight: 700; 
+            font-weight: 800; 
             cursor: pointer; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
         .btn-retour:active { transform: scale(0.95); }
     </style>
 </head>
 <body onload="lancerValidation()">
 
-    <audio id="son-succes" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
-    <audio id="son-erreur" src="https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3" preload="auto"></audio>
+    <audio id="snd-success" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
 
     <div class="container" id="ui-box">
         <div class="spinner"></div>
@@ -99,37 +96,37 @@
 
     <script>
         function lancerValidation() {
-            // 1. Charger la config dynamique
-            let config = { id: 'bistrot' };
-            if (typeof appliquerConfig === "function") {
-                config = appliquerConfig();
-            }
+            // 1. Charger la config dynamique (FIDDLE-App)
+            const config = appliquerConfig();
 
+            // 2. Récupérer les données transmises par le scanner
             const urlParams = new URLSearchParams(window.location.search);
             const emailClient = urlParams.get('email');
-            
-            // 🎯 CORRECTION : On s'assure de bien récupérer l'ID du resto depuis l'URL ou la config
             const restoID = urlParams.get('resto') || config.id; 
-            const URL_RETOUR = `scanner.html?resto=${restoID}`;
-
-            const uiBox = document.getElementById('ui-box');
             
+            const uiBox = document.getElementById('ui-box');
             const API_URL = config.scriptValidation;
 
-            if (emailClient && API_URL && restoID) {
-                // 🎯 CORRECTION : On envoie l'email ET le resto au Google Script !
-                fetch(API_URL + "?email=" + encodeURIComponent(emailClient) + "&resto=" + encodeURIComponent(restoID))
+            // URL de retour au scanner (on garde l'ID resto pour ne pas le perdre)
+            const URL_RETOUR = `scanner.html?resto=${restoID}`;
+
+            if (emailClient && API_URL) {
+                // 3. Appel au Google Apps Script de VALIDATION
+                // On ajoute un timestamp pour éviter tout problème de cache
+                const finalRequest = `${API_URL}?email=${encodeURIComponent(emailClient)}&resto=${restoID}&t=${Date.now()}`;
+
+                fetch(finalRequest)
                     .then(response => response.json())
                     .then(data => {
                         if(data.success) {
-                            // 🟢 SUCCÈS : On passe au VERT
+                            // 🟢 SUCCÈS : Vert
                             document.body.style.backgroundColor = 'var(--success)';
-                            document.getElementById('son-succes').play().catch(()=>console.log("Audio bloqué par le navigateur"));
+                            try { document.getElementById('snd-success').play(); } catch(e){}
                             
                             uiBox.innerHTML = `
                                 <div class="icon-box">✔️</div>
                                 <h1>VALIDÉ !</h1>
-                                <p>Score actuel :<br><strong>${data.nouveauScore} points</strong></p>
+                                <p>Nouveau score pour ce client :<br><strong>${data.nouveauScore} point${data.nouveauScore > 1 ? 's' : ''}</strong></p>
                             `;
 
                             // Retour automatique au scanner après 2.5 secondes
@@ -138,21 +135,20 @@
                             }, 2500);
 
                         } else {
-                            afficherErreur("Erreur : " + (data.message || "Client non reconnu."));
+                            // 🔴 ERREUR : Rouge (Ex: Client non trouvé)
+                            afficherErreur("Erreur : " + (data.message || "Action impossible."));
                         }
                     })
                     .catch(error => {
-                        afficherErreur("Problème de connexion avec Brevo.");
+                        console.error(error);
+                        afficherErreur("Erreur de connexion aux serveurs FIDDLE.");
                     });
             } else {
-                afficherErreur(emailClient ? "Config API Validation manquante." : "Aucun email détecté.");
+                afficherErreur("Données manquantes (Email ou Resto).");
             }
 
             function afficherErreur(message) {
-                // 🔴 ÉCHEC : On passe au ROUGE
                 document.body.style.backgroundColor = 'var(--error)';
-                document.getElementById('son-erreur').play().catch(()=>console.log("Audio bloqué par le navigateur"));
-                
                 uiBox.innerHTML = `
                     <div class="icon-box">❌</div>
                     <h1>ERREUR</h1>
