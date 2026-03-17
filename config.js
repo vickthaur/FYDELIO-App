@@ -19,10 +19,10 @@ const agenceClients = {
         // ⚙️ Mécanique de fidélité
         seuilPoints: 5,
         recompense: "5 points = 1 Dessert Offert 🍰",
-        pointsBienvenue: 1, // Commence à 0 point
+        pointsBienvenue: 1, // Commence à 1 point
         
-        // 🛡️ Sécurité
-        delaiAntiFraudeHeures: 12, // Impossible de valider 2 points en moins de 12h
+        // 🛡️ Sécurité Anti-Fraude
+        delaiAntiFraudeHeures: 12, // Verrouille le compte : 12 heures d'attente requises entre deux scans
         
         // 🔗 Liens
         formInscription: "https://9d65705b.sibforms.com/serve/MUIFANfE1Ud8qtliFwPa28l2_ezu8uq3LYTQgyIt1FJdCu6ADCk_qAvGFPQSFp6HtEVLnsSSBWPY0iWuOOLkQD9PtOzEg4zLN0fuwTKabJS3y5yW2LPzsf2FhbihtwWgWsAsrIamq8lCQvUuxIOb6Cn6zN8x4QyFFwDvc_x03QZONNextkyrknz6Uqew8VmYb2VoF5aYAXjhiNuf6A==",
@@ -41,7 +41,7 @@ const agenceClients = {
         recompense: "10 points = 1 Cocktail Signature 🍸",
         pointsBienvenue: 1, // 🎁 Offre 1 point dès l'inscription !
         
-       // 🛡️ Sécurité Anti-Fraude
+        // 🛡️ Sécurité Anti-Fraude
         delaiAntiFraudeHeures: 8, // Verrouille le compte : 8 heures d'attente requises entre deux scans
         
         // 🔗 Liens
@@ -59,7 +59,8 @@ const agenceClients = {
         recompense: "Sélectionnez un établissement",
         pointsBienvenue: 0,
         delaiAntiFraudeHeures: 0,
-        formInscription: "#"
+        formInscription: "#",
+        lienAvisGoogle: "#"
     }
 };
 
