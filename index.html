@@ -40,7 +40,6 @@
         h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; color: #0f172a; letter-spacing: -1px; }
         .subtitle { font-size: 15px; color: #64748b; margin-bottom: 35px; line-height: 1.6; }
 
-        /* Style des champs (Mapping Brevo) */
         .form-group { margin-bottom: 20px; text-align: left; }
         .form-group label { 
             display: block; font-size: 10px; font-weight: 800; color: #94a3b8; 
@@ -65,7 +64,13 @@
         button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--primary-glow); }
         button:disabled { background: #cbd5e1; cursor: not-allowed; }
 
+        #success-state { display: none; padding: 20px 0; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .footer { font-size: 10px; color: #94a3b8; margin-top: 35px; }
+
+        /* L'Iframe invisible est de retour et cachée proprement */
+        #hidden_iframe { display: none; width: 0; height: 0; border: none; }
     </style>
 </head>
 <body>
@@ -80,7 +85,7 @@
                 <strong class="texte-recompense">Chargement...</strong>
             </p>
 
-            <form id="form-inscription" method="POST">
+            <form id="form-inscription" method="POST" target="hidden_iframe">
                 
                 <div class="form-group">
                     <label>Entrez votre PRENOM *</label>
@@ -115,10 +120,22 @@
             </form>
         </div>
 
+        <div id="success-state">
+            <div style="font-size: 64px; margin-bottom: 20px;">📩</div>
+            <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 10px; color: var(--success-color);">C'est envoyé !</h2>
+            <p class="subtitle">
+                Vos informations sont enregistrées.<br>
+                <strong>Vérifiez vos emails</strong> pour accéder à votre carte de fidélité.
+            </p>
+            <button onclick="window.location.reload()" style="background: #f1f5f9; color: #64748b; margin-top: 20px;">Fermer</button>
+        </div>
+
         <div class="footer">
             © <span class="nom-resto"></span> — <strong>Fiddle Bro's</strong>
         </div>
     </div>
+
+    <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -134,13 +151,12 @@
             }
 
             form.addEventListener('submit', async function(e) {
-                // 1. On bloque l'envoi immédiat pour faire le travail Supabase
+                // 1. OBLIGATOIRE : On met l'envoi du formulaire sur "Pause" pour éviter les bugs
                 e.preventDefault(); 
                 
                 btn.innerText = "Synchronisation...";
                 btn.disabled = true;
 
-                // On capture les données
                 const emailVal = document.getElementById('email').value.trim().toLowerCase();
                 const prenomVal = document.getElementById('prenom').value.trim();
                 const nomVal = document.getElementById('nom').value.trim();
@@ -150,7 +166,7 @@
                 try {
                     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
-                    // Mise à jour du CRM Supabase
+                    // CRM Supabase
                     await _supabase.from('clients').upsert({ 
                         email: emailVal, 
                         prenom: prenomVal,
@@ -160,7 +176,7 @@
                         restaurant_origine: config.id
                     });
 
-                    // Initialisation des points
+                    // Points
                     const { data: hasPoints } = await _supabase.from('points')
                         .select('id').eq('client_email', emailVal).eq('restaurant_id', config.id).maybeSingle();
 
@@ -176,8 +192,14 @@
                     console.error("Erreur CRM Supabase:", err);
                 }
 
-                // 2. On libère l'envoi vers Brevo (qui va rediriger la page)
+                // 2. ON DÉBLOQUE L'ENVOI ! Le formulaire part maintenant dans l'Iframe
                 form.submit();
+
+                // 3. Basculement visuel vers l'écran de succès
+                setTimeout(() => {
+                    document.getElementById('form-state').style.display = 'none';
+                    document.getElementById('success-state').style.display = 'block';
+                }, 400); // On laisse 400ms pour que l'iframe charge la page Brevo
             });
         });
     </script>
