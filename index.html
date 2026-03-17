@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - Programme Fidélité</title>
+    <title>Fiddle Bro's | Inscription</title>
     
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        :root {
+        /* 2. STYLE VIP AGENCE */
+        :root { 
             --primary: #1e293b; 
-            --primary-glow: rgba(30, 41, 59, 0.1);
+            --primary-glow: rgba(30, 41, 59, 0.1); 
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,54 +21,35 @@
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #f8fafc;
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            color: #1e293b; 
-            padding: 20px;
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; color: #1e293b; padding: 20px;
             background-image: radial-gradient(circle at top right, var(--primary-glow) 0%, transparent 40%);
         }
         
         .card { 
-            background: #ffffff; 
-            width: 100%; 
-            max-width: 440px; 
-            border-radius: 32px; 
-            padding: 45px 35px; 
+            background: #ffffff; width: 100%; max-width: 440px; 
+            border-radius: 32px; padding: 45px 35px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.04); 
-            text-align: center; 
-            border: 1px solid rgba(0,0,0,0.05);
+            text-align: center; border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* LOGO RESTAURÉ 🎁 */
         .logo-placeholder { font-size: 48px; margin-bottom: 20px; display: block; }
-        
-        .restaurant-tag { 
-            font-size: 11px; text-transform: uppercase; letter-spacing: 3px; 
-            color: #94a3b8; font-weight: 800; margin-bottom: 10px; 
-        }
-
-        /* TITRE BIENVENUE RESTAURÉ */
+        .restaurant-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: #94a3b8; font-weight: 800; margin-bottom: 10px; }
         h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; color: #0f172a; letter-spacing: -1px; }
-        
-        /* TEXTE CADEAU RESTAURÉ */
         .subtitle { font-size: 15px; color: #64748b; margin-bottom: 35px; line-height: 1.6; }
         .subtitle strong { color: var(--primary); font-weight: 700; }
 
-        /* Champs du Formulaire */
+        /* DESIGN DES CHAMPS */
         .form-group { margin-bottom: 20px; text-align: left; }
         .form-group label { 
-            display: block; font-size: 10px; font-weight: 800; margin-bottom: 8px; 
-            color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-left: 4px; 
+            display: block; font-size: 10px; font-weight: 800; color: #94a3b8; 
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-left: 4px; 
         }
-        
         .form-group input { 
             width: 100%; padding: 15px 18px; border: 2px solid #f1f5f9; 
-            border-radius: 14px; font-family: inherit; font-size: 14px; font-weight: 500;
-            background-color: #f8fafc; transition: all 0.2s ease;
+            border-radius: 14px; font-size: 14px; font-weight: 500;
+            background-color: #f8fafc; transition: 0.2s ease;
         }
-
         .form-group input:focus { 
             outline: none; border-color: var(--primary); background-color: #fff; 
             box-shadow: 0 0 0 4px var(--primary-glow); 
@@ -77,13 +58,14 @@
         button { 
             width: 100%; background: var(--primary); color: white; border: none; 
             padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 800; 
-            cursor: pointer; transition: all 0.3s ease; margin-top: 10px; 
+            cursor: pointer; transition: 0.3s ease; margin-top: 10px; 
         }
-
         button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--primary-glow); }
-        button:disabled { background: #cbd5e1; cursor: not-allowed; }
-
+        
         .footer { font-size: 10px; color: #94a3b8; margin-top: 35px; }
+
+        /* IFRAME CACHÉE POUR BREVO */
+        #hidden_iframe { display: none; }
     </style>
 </head>
 <body>
@@ -93,32 +75,27 @@
         <div class="restaurant-tag nom-resto">Chargement...</div>
         <h1>Bienvenue</h1>
         <p class="subtitle">
-            Rejoignez notre programme pour profiter de votre avantage :<br>
+            Rejoignez-nous et profitez de :<br>
             <strong class="texte-recompense">Chargement de l'offre...</strong>
         </p>
 
-        <form id="form-inscription" method="POST">
-            
+        <form id="form-inscription" method="POST" target="hidden_iframe">
             <div class="form-group">
                 <label>Entrez votre PRENOM *</label>
-                <input type="text" id="prenom" name="PRENOM" placeholder="Prénom" required>
+                <input type="text" id="prenom" name="PRENOM" required>
             </div>
-
             <div class="form-group">
                 <label>Entrez votre NOM</label>
-                <input type="text" id="nom" name="NOM" placeholder="Nom">
+                <input type="text" id="nom" name="NOM">
             </div>
-
             <div class="form-group">
                 <label>Veuillez renseigner votre adresse email *</label>
-                <input type="email" id="email" name="EMAIL" placeholder="exemple@mail.com" required>
+                <input type="email" id="email" name="EMAIL" required>
             </div>
-
             <div class="form-group">
                 <label>Entrez votre SMS *</label>
-                <input type="tel" id="sms" name="SMS" placeholder="0612345678" required>
+                <input type="tel" id="sms" name="SMS" placeholder="06XXXXXXXX" required>
             </div>
-
             <div class="form-group">
                 <label>Entrez votre DATE_ANNIVERSAIRE</label>
                 <input type="date" id="anniversaire" name="DATE_ANNIVERSAIRE">
@@ -126,40 +103,35 @@
 
             <input type="hidden" name="email_address_check" value="">
             <input type="hidden" name="locale" value="fr">
-
             <button type="submit" id="btn-submit">S'INSCRIRE 🚀</button>
         </form>
 
-        <div class="footer">
-            © <span class="nom-resto"></span> — <strong>Fiddle Bro's</strong>
-        </div>
+        <div class="footer">© Fiddle Bro's — Agence de Fidélité</div>
     </div>
+
+    <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Initialisation dynamique
+            // A. Initialisation config
             const config = appliquerConfig();
             const form = document.getElementById('form-inscription');
             const btn = document.getElementById('btn-submit');
             const visualIcon = document.getElementById('visual-icon');
 
-            // Personnalisation selon le resto
-            if (config.id !== "default" && config.formInscription !== "#") {
+            // B. Personnalisation Visuelle
+            if (config.id !== "default") {
                 form.action = config.formInscription;
                 if (config.id === "villa_saint_antoine") visualIcon.innerHTML = "✨";
                 if (config.id === "bistrot") visualIcon.innerHTML = "🍴";
-            } else {
-                btn.disabled = true;
-                btn.innerText = "Sélectionnez un établissement";
             }
 
-            // 2. ⚡ MOTEUR CRM SUPABASE
+            // C. LOGIQUE DE SOUMISSION
             form.addEventListener('submit', async function(e) {
-                e.preventDefault(); 
-                btn.innerText = "Synchronisation CRM...";
+                // On laisse le formulaire partir vers l'iframe pour Brevo
+                btn.innerText = "Synchronisation...";
                 btn.disabled = true;
 
-                // Capture des 5 champs
                 const emailVal = document.getElementById('email').value.trim().toLowerCase();
                 const prenomVal = document.getElementById('prenom').value.trim();
                 const nomVal = document.getElementById('nom').value.trim();
@@ -169,7 +141,7 @@
                 try {
                     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
-                    // Enregistrement CRM complet (Upsert pour éviter les doublons)
+                    // 1. Mise à jour CRM Supabase
                     await _supabase.from('clients').upsert({ 
                         email: emailVal, 
                         prenom: prenomVal,
@@ -179,21 +151,28 @@
                         restaurant_origine: config.id
                     });
 
-                    // Initialisation du compteur de points si nouveau client
-                    const { data: hasPoints } = await _supabase.from('points')
+                    // 2. Initialisation des points
+                    const { data: points } = await _supabase.from('points')
                         .select('id').eq('client_email', emailVal).eq('restaurant_id', config.id).maybeSingle();
 
-                    if (!hasPoints) {
+                    if (!points) {
                         await _supabase.from('points').insert([{
                             client_email: emailVal,
                             restaurant_id: config.id,
                             total_points: config.pointsBienvenue || 0
                         }]);
                     }
-                } catch (err) { console.error("Erreur CRM:", err); }
 
-                // 3. Départ vers Brevo
-                form.submit();
+                    // 3. REDIRECTION FORCÉE (On court-circuite Brevo)
+                    setTimeout(() => {
+                        window.location.href = `carte.html?email=${emailVal}&resto=${config.id}&prenom=${prenomVal}`;
+                    }, 800);
+
+                } catch (err) {
+                    console.error("Erreur technique:", err);
+                    // Secours : on redirige même si Supabase tousse
+                    setTimeout(() => { window.location.href = `carte.html?email=${emailVal}&resto=${config.id}`; }, 1200);
+                }
             });
         });
     </script>
