@@ -50,6 +50,10 @@
         body.error { background-color: #ef4444; }   /* Rouge : Problème technique */
         body.reward { background-color: #f59e0b; }  /* Or : Cadeau à donner ! */
         body.warning { background-color: #f97316; } /* Orange : Anti-fraude bloqué */
+
+        /* Iframe et Formulaire Invisibles pour Brevo */
+        #hidden_iframe_brevo { display: none; width: 0; height: 0; border: none; }
+        #brevo_form { display: none; }
     </style>
 </head>
 <body>
@@ -60,6 +64,13 @@
         <p id="ui-text">Sécurisation des données</p>
         <div class="score-display" id="ui-score">0</div>
     </div>
+
+    <iframe name="hidden_iframe_brevo" id="hidden_iframe_brevo"></iframe>
+    <form id="brevo_form" method="POST" target="hidden_iframe_brevo">
+        <input type="email" id="brevo_email" name="EMAIL">
+        <input type="hidden" name="email_address_check" value="">
+        <input type="hidden" name="locale" value="fr">
+    </form>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -73,8 +84,11 @@
             const uiTitle = document.getElementById('ui-title');
             const uiText = document.getElementById('ui-text');
             const uiScore = document.getElementById('ui-score');
+            
+            // Éléments Brevo
+            const brevoForm = document.getElementById('brevo_form');
+            const brevoEmailInput = document.getElementById('brevo_email');
 
-            // Redirection automatique vers le scanner
             function retourScanner(delai) {
                 setTimeout(() => {
                     window.location.href = `scanner.html?resto=${config.id}`;
@@ -89,18 +103,15 @@
                 }
 
                 try {
-                    // 1. VÉRIFICATION CRM (Création si le client n'existe pas du tout)
+                    // 1. VÉRIFICATION CRM
                     const { data: client } = await _supabase.from('clients').select('email').eq('email', email).maybeSingle();
                     if (!client) {
                         await _supabase.from('clients').insert([{ email: email, prenom: 'Client', restaurant_origine: config.id }]);
                     }
 
-                    // 2. LECTURE DU COMPTEUR DE POINTS
+                    // 2. LECTURE COMPTEUR
                     const { data: pointsRecord } = await _supabase.from('points')
-                        .select('*')
-                        .eq('client_email', email)
-                        .eq('restaurant_id', config.id)
-                        .maybeSingle();
+                        .select('*').eq('client_email', email).eq('restaurant_id', config.id).maybeSingle();
 
                     let scoreActuel = 0;
                     
@@ -115,7 +126,7 @@
                             uiIcon.innerText = "⏱️";
                             uiTitle.innerText = "Trop Tôt";
                             uiText.innerText = `Ce client a déjà été scanné il y a moins de ${config.delaiAntiFraudeHeures}h.`;
-                            return retourScanner(3500); // On bloque et on renvoie à la caméra
+                            return retourScanner(3500); 
                         }
                     }
 
@@ -128,23 +139,21 @@
                     let estCadeau = false;
 
                     if (scoreActuel >= config.seuilPoints) {
-                        nouveauScore = 1; // Le client vient réclamer son cadeau, on repart un nouveau cycle à 1
+                        nouveauScore = 1; 
                         estCadeau = true;
                     } else {
                         nouveauScore = scoreActuel + 1;
-                        if (nouveauScore === config.seuilPoints) estCadeau = true; // Il vient d'atteindre le palier !
+                        if (nouveauScore === config.seuilPoints) estCadeau = true; 
                     }
 
-                    // 5. SAUVEGARDE DANS SUPABASE (Mise à jour ou Insertion)
+                    // 5. SAUVEGARDE DANS SUPABASE
                     const dateISO = new Date().toISOString();
                     
                     if (pointsRecord) {
-                        // Mise à jour de la ligne existante
                         await _supabase.from('points')
                             .update({ total_points: nouveauScore, derniere_visite: dateISO })
                             .eq('id', pointsRecord.id);
                     } else {
-                        // Création du premier compteur pour ce resto
                         await _supabase.from('points')
                             .insert([{ 
                                 client_email: email, 
@@ -154,7 +163,15 @@
                             }]);
                     }
 
-                    // 6. AFFICHAGE DU RÉSULTAT AU SERVEUR
+                    // 🚀 6. DÉCLENCHEMENT BREVO (La nouveauté)
+                    // On vérifie si un lien formScan existe pour ce resto
+                    if (config.formScan && config.formScan !== "#") {
+                        brevoForm.action = config.formScan;
+                        brevoEmailInput.value = email;
+                        brevoForm.submit(); // Envoie l'info à Brevo en silence !
+                    }
+
+                    // 7. AFFICHAGE DU RÉSULTAT AU SERVEUR
                     if (estCadeau) {
                         document.body.classList.add('reward');
                         uiIcon.innerText = "🎁";
@@ -170,14 +187,14 @@
                     uiScore.style.display = "block";
                     uiScore.innerText = nouveauScore;
                     
-                    // Le serveur voit le succès pendant 2.5 secondes puis ça repart sur la caméra
-                    retourScanner(2500);
+                    // On attend un peu plus longtemps (3.5s) pour être sûr que Brevo ait le temps de recevoir l'info avant de quitter
+                    retourScanner(3500);
 
                 } catch (err) {
                     console.error("Erreur critique:", err);
                     document.body.classList.add('error');
                     uiIcon.innerText = "⚠️"; uiTitle.innerText = "Erreur réseau"; uiText.innerText = "Le point n'a pas pu être enregistré.";
-                    retourScanner(3000);
+                    retourScanner(3500);
                 }
             }
 
