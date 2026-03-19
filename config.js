@@ -45,7 +45,7 @@ const agenceClients = {
         
         // 🛡️ Sécurité Anti-Fraude
         // ⚠️ Astuce Dev : Mets '0.03' (2 min) pendant tes tests, puis remets '8' pour la prod
-        delaiAntiFraudeHeures: 8, // Verrouille le compte : 8 heures d'attente requises entre deux scans
+        delaiAntiFraudeHeures: 0, // Verrouille le compte : 8 heures d'attente requises entre deux scans
         
         // 🔗 Liens Brevo & Externes
         formInscription: "https://9d65705b.sibforms.com/serve/MUIFAPNZrGyP3i0xNF-FdppNziEkhvnAiLtRY8uUfol3hxIyq6VHE11ofNd5fjQp_Iq7tjv6nklXAhjOPj_Le1u6Wxz_U2NCQLtoBMgkuGrjRNvCwMzFg7KcWEyXIcW-JPoDtL2QizWiwcOJl5-G96lbhakbnyeJT1cxI_8ZV4SVOfBt8CDOHTGIi-KdJSAAPTHMADTN5Gyt8PgqdA==",
