@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fiddle Bro's | Inscription Premium</title>
+    <title>Fidélité - Inscription</title>
     
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,7 +14,6 @@
         :root {
             --primary: #1e293b; 
             --primary-glow: rgba(30, 41, 59, 0.15);
-            --success-color: #10b981;
             --bg-color: #f8fafc;
             --input-bg: #f1f5f9;
         }
@@ -37,62 +36,39 @@
             position: relative; overflow: hidden;
         }
 
-        .logo-placeholder { font-size: 52px; margin-bottom: 18px; display: block; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.05)); }
+        .logo-placeholder { font-size: 52px; margin-bottom: 18px; display: block; }
         .restaurant-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: #94a3b8; font-weight: 800; margin-bottom: 8px; }
         h1 { font-size: 30px; font-weight: 800; margin-bottom: 8px; color: #0f172a; letter-spacing: -1px; }
         .subtitle { font-size: 15px; color: #64748b; margin-bottom: 35px; line-height: 1.6; }
-        .subtitle strong { color: var(--primary); font-weight: 800; }
 
-        /* GRILLE PREMIUM (2 Colonnes) */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
         .full-width { grid-column: span 2; }
 
         .form-group { text-align: left; }
         .form-group label { 
             display: block; font-size: 10px; font-weight: 800; color: #94a3b8; 
-            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-left: 4px; 
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; 
         }
         
         .form-group input { 
             width: 100%; padding: 16px 20px; border: 2px solid transparent; 
-            border-radius: 16px; font-size: 15px; font-weight: 500;
-            background-color: var(--input-bg); color: #0f172a;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: inherit;
+            border-radius: 16px; font-size: 15px; background-color: var(--input-bg);
+            transition: all 0.3s ease;
         }
-        .form-group input::placeholder { color: #94a3b8; font-weight: 400; }
+
         .form-group input:focus { 
             outline: none; background-color: #fff; border-color: var(--primary); 
-            box-shadow: 0 0 0 5px var(--primary-glow); transform: translateY(-2px);
+            box-shadow: 0 0 0 5px var(--primary-glow);
         }
 
         button { 
             width: 100%; background: var(--primary); color: white; border: none; 
             padding: 20px; border-radius: 18px; font-size: 16px; font-weight: 800; 
-            cursor: pointer; transition: all 0.3s ease; 
-            box-shadow: 0 10px 20px -5px var(--primary-glow);
-        }
-        button:hover { transform: translateY(-4px); box-shadow: 0 15px 25px -5px var(--primary-glow); filter: brightness(1.05); }
-        button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        /* ANIMATIONS SUCCÈS */
-        #success-state { display: none; padding: 20px 0; animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(20px) scale(0.95); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
+            cursor: pointer; transition: 0.3s;
         }
 
-        .success-icon { font-size: 72px; margin-bottom: 20px; animation: bounceIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes bounceIn {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .footer { font-size: 11px; font-weight: 600; color: #cbd5e1; margin-top: 30px; letter-spacing: 0.5px; }
-
-        /* IFRAME CACHÉE PROPREMENT */
-        #hidden_iframe { display: none; width: 0; height: 0; border: none; }
+        #success-state { display: none; padding: 20px 0; }
+        #hidden_iframe { display: none; }
     </style>
 </head>
 <body>
@@ -102,34 +78,26 @@
             <div id="visual-icon" class="logo-placeholder">🎁</div>
             <div class="restaurant-tag nom-resto">Chargement...</div>
             <h1>Bienvenue</h1>
-            <p class="subtitle">
-                Inscrivez-vous pour profiter de :<br>
-                <strong class="texte-recompense">Chargement...</strong>
-            </p>
+            <p class="subtitle">Inscrivez-vous pour profiter de :<br><strong class="texte-recompense">Chargement...</strong></p>
 
             <form id="form-inscription" method="POST" target="hidden_iframe">
-                
                 <div class="form-grid">
                     <div class="form-group">
                         <label>PRÉNOM *</label>
-                        <input type="text" id="prenom" name="PRENOM" placeholder="Ex: Jean" required>
+                        <input type="text" id="prenom" name="PRENOM" placeholder="Jean" required>
                     </div>
-
                     <div class="form-group">
                         <label>NOM</label>
-                        <input type="text" id="nom" name="NOM" placeholder="Ex: Dupont">
+                        <input type="text" id="nom" name="NOM" placeholder="Dupont">
                     </div>
-
                     <div class="form-group full-width">
                         <label>ADRESSE EMAIL *</label>
-                        <input type="email" id="email" name="EMAIL" placeholder="jean.dupont@mail.com" required>
+                        <input type="email" id="email" name="EMAIL" placeholder="jean@mail.com" required>
                     </div>
-
                     <div class="form-group">
-                        <label>SMS *</label>
-                        <input type="text" id="sms" name="SMS" placeholder="06 12 34 56 78" required>
+                        <label>TÉLÉPHONE *</label>
+                        <input type="text" id="sms" name="SMS" placeholder="06..." required>
                     </div>
-
                     <div class="form-group">
                         <label>ANNIVERSAIRE</label>
                         <input type="text" id="anniversaire" name="DATE_ANNIVERSAIRE" placeholder="JJ/MM/AAAA">
@@ -145,79 +113,69 @@
         </div>
 
         <div id="success-state">
-            <div class="success-icon">💌</div>
-            <h2 style="font-size: 26px; font-weight: 800; margin-bottom: 12px; color: var(--success-color);">C'est envoyé !</h2>
-            <p class="subtitle" style="margin-bottom: 25px;">
-                Vos informations sont enregistrées.<br>
-                <strong>Vérifiez vos emails</strong> pour accéder à votre carte de fidélité.
-            </p>
-            <button onclick="window.location.reload()" style="background: #f8fafc; color: #64748b; box-shadow: none; border: 2px solid #f1f5f9;">Retourner à l'accueil</button>
-        </div>
-
-        <div class="footer">
-            POWERED BY <strong>FIDDLE BRO'S</strong>
+            <div style="font-size:72px">💌</div>
+            <h2 style="color:#10b981; margin-top:15px">C'est envoyé !</h2>
+            <p class="subtitle">Vérifiez vos emails pour votre carte de fidélité.</p>
         </div>
     </div>
 
     <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const config = appliquerConfig();
-        const form = document.getElementById('form-inscription');
-        const btn = document.getElementById('btn-submit');
-        const visualIcon = document.getElementById('visual-icon');
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. On applique la config (Villa ou Bistrot)
+            const config = appliquerConfig();
+            const form = document.getElementById('form-inscription');
+            const btn = document.getElementById('btn-submit');
 
-        if (config.id !== "default") {
-            form.action = config.formInscription;
-            if (config.id === "villa_saint_antoine") visualIcon.innerHTML = "✨";
-            if (config.id === "bistrot") visualIcon.innerHTML = "🍴";
-        }
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault(); // On stoppe pour envoyer à Supabase d'abord
-            
-            btn.innerHTML = '<span style="opacity: 0.8;">Chargement...</span>';
-            btn.disabled = true;
-
-            const emailVal = document.getElementById('email').value.trim().toLowerCase();
-            const prenomVal = document.getElementById('prenom').value.trim();
-            const nomVal = document.getElementById('nom').value.trim();
-            const smsVal = document.getElementById('sms').value.trim();
-            const annivVal = document.getElementById('anniversaire').value.trim();
-
-            try {
-                const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                
-                // 1. ENVOI AU CRM SUPABASE
-                // Le trigger SQL s'occupera tout seul de mettre 1 point au bon resto
-                await _supabase.from('clients').upsert({ 
-                    email: emailVal, 
-                    prenom: prenomVal,
-                    nom: nomVal,
-                    telephone: smsVal,
-                    date_anniversaire: annivVal,
-                    restaurant_origine: config.id
-                });
-
-                // 2. ENVOI À BREVO
-                // Maintenant que Supabase est OK, on lance l'envoi réel du formulaire
-                form.submit();
-
-                // 3. AFFICHAGE DU SUCCÈS
-                setTimeout(() => {
-                    document.getElementById('form-state').style.display = 'none';
-                    document.getElementById('success-state').style.display = 'block';
-                }, 500);
-
-            } catch (err) {
-                console.error("Erreur critique :", err);
-                alert("Erreur de connexion. Veuillez réessayer.");
-                btn.disabled = false;
-                btn.innerHTML = "S'INSCRIRE 🚀";
+            // 2. On branche le bon formulaire Brevo
+            if (config.id !== "default") {
+                form.action = config.formInscription;
             }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault(); // On bloque l'envoi immédiat
+                
+                btn.innerHTML = 'Synchronisation...';
+                btn.disabled = true;
+
+                const emailVal = document.getElementById('email').value.trim().toLowerCase();
+                const prenomVal = document.getElementById('prenom').value.trim();
+                const nomVal = document.getElementById('nom').value.trim();
+                const telVal = document.getElementById('sms').value.trim();
+                const annivVal = document.getElementById('anniversaire').value.trim();
+
+                try {
+                    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    
+                    // 3. ENVOI SUPABASE (Table unique 'clients')
+                    // Le Trigger SQL s'occupe du point de bienvenue automatiquement
+                    await _supabase.from('clients').upsert({ 
+                        email: emailVal, 
+                        prenom: prenomVal,
+                        nom: nomVal,
+                        telephone: telVal,
+                        date_anniversaire: annivVal,
+                        restaurant_origine: config.id
+                    });
+
+                    // 4. ENVOI BREVO (Déclenche le mail)
+                    form.submit();
+
+                    // 5. AFFICHAGE SUCCÈS
+                    setTimeout(() => {
+                        document.getElementById('form-state').style.display = 'none';
+                        document.getElementById('success-state').style.display = 'block';
+                    }, 500);
+
+                } catch (err) {
+                    console.error("Erreur:", err);
+                    alert("Erreur de connexion. Veuillez réessayer.");
+                    btn.disabled = false;
+                    btn.innerHTML = "S'INSCRIRE 🚀";
+                }
+            });
         });
-    });
-</script>
+    </script>
 </body>
 </html>
