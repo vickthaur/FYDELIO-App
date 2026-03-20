@@ -43,7 +43,149 @@
             padding: 20px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.05);
+        }<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Pro | FYDELIO</title>
+    
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary: #0F766E; /* Vert FYDELIO */
+            --primary-glow: rgba(15, 118, 110, 0.2);
         }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0F172A; 
+            color: white; 
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; 
+            min-height: 100vh; padding: 20px; text-align: center; 
+            background-image: radial-gradient(circle at top center, var(--primary-glow) 0%, transparent 70%);
+        }
+        
+        .header { margin-bottom: 30px; }
+        .brand-tag {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+        .logo-resto { 
+            font-size: 13px; text-transform: uppercase; 
+            letter-spacing: 4px; color: #FFFFFF; font-weight: 800; 
+            margin-bottom: 8px;
+        }
+        .title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+
+        /* Conteneur de la caméra Premium */
+        #camera-container {
+            width: 100%; max-width: 380px; 
+            background: #1E293B; 
+            border-radius: 32px; 
+            padding: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        #reader { 
+            width: 100%; border-radius: 20px; overflow: hidden; 
+            border: none !important; 
+            background: black;
+        }
+        
+        .status { 
+            margin-top: 30px; padding: 16px 30px; 
+            border-radius: 100px; background: rgba(255,255,255,0.05); 
+            font-size: 15px; font-weight: 700; color: #cbd5e1; 
+            display: inline-block; border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        /* Boutons du scanner */
+        #reader button { 
+            background: var(--primary) !important; color: white !important; 
+            border: none !important; padding: 14px 28px !important; 
+            border-radius: 12px !important; font-weight: 700 !important; 
+            margin-top: 15px !important; cursor: pointer !important; 
+            font-family: 'Plus Jakarta Sans', sans-serif !important; 
+            transition: 0.3s;
+        }
+        #reader button:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        #reader a { color: var(--primary) !important; text-decoration: none; font-size: 12px; margin-top: 10px; display: block; }
+
+        .footer-fydelio {
+            margin-top: 40px;
+            font-size: 10px;
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="brand-tag">Terminal de scan FYDELIO</div>
+        <div class="logo-resto nom-resto">Chargement...</div>
+        <div class="title">Scanner Client</div>
+    </div>
+
+    <div id="camera-container">
+        <div id="reader"></div>
+    </div>
+    
+    <div class="status" id="statut">Prêt à scanner... 📷</div>
+
+    <div class="footer-fydelio">Système Sécurisé FYDELIO v4.0</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const config = appliquerConfig(); // Utilise le moteur FYDELIO de config.js
+            const statut = document.getElementById('statut');
+            
+            let scanVerrouille = false;
+
+            function onScanSuccess(decodedText, decodedResult) {
+                if (scanVerrouille) return; 
+                scanVerrouille = true;
+
+                // Feedback visuel
+                statut.style.background = "var(--primary)";
+                statut.style.color = "white";
+                statut.style.borderColor = "var(--primary)";
+                statut.innerHTML = "✅ Client identifié !";
+
+                // Redirection vers la page de validation
+                setTimeout(() => {
+                    window.location.href = `valider.html?email=${encodeURIComponent(decodedText)}&resto=${config.id}`;
+                }, 600); 
+            }
+
+            const html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+                fps: 15, // Plus fluide pour FYDELIO
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0 
+            }, false);
+            
+            html5QrcodeScanner.render(onScanSuccess);
+        });
+    </script>
+</body>
+</html>
 
         #reader { 
             width: 100%; border-radius: 20px; overflow: hidden; 
