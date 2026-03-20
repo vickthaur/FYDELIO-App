@@ -57,10 +57,10 @@
             line-height: 1;
         }
 
-        /* États de couleur */
-        body.success { background-color: #0F766E; } 
+        /* États de couleur FYDELIO */
+        body.success { background-color: #0F766E; } /* Émeraude Success */
         body.error { background-color: #ef4444; }   
-        body.reward { background-color: #f59e0b; }  
+        body.reward { background-color: #f59e0b; }  /* Ambre pour le cadeau */
         body.warning { background-color: #f97316; } 
 
         #hidden_iframe_brevo { display: none; width: 0; height: 0; border: none; }
@@ -86,7 +86,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const config = appliquerConfig(); 
+            const config = appliquerConfig(); // Initialisation via config.js (FYDELIO)
             const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             const params = new URLSearchParams(window.location.search);
             const email = params.get('email');
@@ -112,75 +112,61 @@
                 }
 
                 try {
+                    // 1. Détermination de la colonne de points
                     const maColonne = (config.id === 'villa_saint_antoine') ? 'points_villa' : 'points_bistrot';
 
-                    // 1. Recherche du client (on récupère aussi la date du dernier scan)
+                    // 2. Recherche du client
                     const { data: client, error: fetchError } = await _supabase
                         .from('clients')
-                        .select(`*, last_scan_at`)
+                        .select('*')
                         .eq('email', email)
                         .maybeSingle();
 
                     if (fetchError) throw fetchError;
 
-                    // 🛡️ SÉCURITÉ ANTI-FRAUDE (REMISE EN PLACE)
-                    if (client && client.last_scan_at) {
-                        const dernierScan = new Date(client.last_scan_at).getTime();
-                        const maintenant = Date.now();
-                        const heuresEcoulees = (maintenant - dernierScan) / (1000 * 60 * 60);
-
-                        if (heuresEcoulees < config.delaiAntiFraudeHeures) {
-                            document.body.classList.add('warning');
-                            uiIcon.innerText = "🛡️";
-                            uiTitle.innerText = "Anti-Fraude";
-                            uiText.innerText = "Scan déjà effectué. Revenez plus tard !";
-                            return retourScanner(4000);
-                        }
-                    }
-
-                    let scoreActuel = client ? (client[maColonne] || 0) : 0;
+                    let scoreActuel = 0;
 
                     if (!client) {
+                        // Création automatique si nouveau (Sécurité FYDELIO)
                         await _supabase.from('clients').insert([{ email: email, prenom: 'Client', restaurant_origine: config.id }]);
                         scoreActuel = 0;
+                    } else {
+                        scoreActuel = client[maColonne] || 0;
                     }
 
-                    // 2. Calcul de la fidélité
+                    // 3. Calcul de la fidélité
                     let nouveauScore;
                     let estCadeau = false;
 
                     if (scoreActuel >= config.seuilPoints) {
-                        nouveauScore = 1;
+                        nouveauScore = 1; // On repart à 1 après avoir consommé le cadeau
                         estCadeau = true;
                     } else {
                         nouveauScore = scoreActuel + 1;
                         if (nouveauScore === config.seuilPoints) estCadeau = true; 
                     }
 
-                    // 3. Mise à jour (Points + Heure du scan pour le verrouillage)
+                    // 4. Mise à jour Supabase
                     const { error: updateError } = await _supabase
                         .from('clients')
-                        .update({ 
-                            [maColonne]: nouveauScore,
-                            last_scan_at: new Date().toISOString() 
-                        })
+                        .update({ [maColonne]: nouveauScore })
                         .eq('email', email);
 
                     if (updateError) throw updateError;
 
-                    // 4. Synchro Brevo
+                    // 5. Synchro Brevo (Emailing / Wallet)
                     if (config.formScan && config.formScan !== "#") {
                         brevoForm.action = config.formScan;
                         brevoEmailInput.value = email;
                         brevoForm.submit(); 
                     }
 
-                    // 5. UI
+                    // 6. UI de succès FYDELIO
                     if (estCadeau) {
                         document.body.classList.add('reward');
                         uiIcon.innerText = "🎁";
                         uiTitle.innerText = "CADEAU !";
-                        uiText.innerText = "Récompense débloquée.";
+                        uiText.innerText = "Récompense débloquée pour le client.";
                     } else {
                         document.body.classList.add('success');
                         uiIcon.innerText = "✅";
@@ -190,12 +176,15 @@
 
                     uiScore.style.display = "block";
                     uiScore.innerText = nouveauScore;
+                    
                     retourScanner(3500);
 
                 } catch (err) {
-                    console.error("Erreur:", err);
+                    console.error("Erreur de traitement FYDELIO:", err);
                     document.body.classList.add('error');
-                    uiIcon.innerText = "⚠️"; uiTitle.innerText = "Erreur Sync";
+                    uiIcon.innerText = "⚠️"; 
+                    uiTitle.innerText = "Erreur Sync"; 
+                    uiText.innerText = "Impossible de joindre la base FYDELIO.";
                     retourScanner(4000);
                 }
             }
