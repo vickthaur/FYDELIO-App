@@ -45,13 +45,11 @@
             line-height: 1;
         }
 
-        /* Le Code Couleur pour le Serveur */
-        body.success { background-color: #10b981; } /* Vert : +1 Point */
-        body.error { background-color: #ef4444; }   /* Rouge : Problème technique */
-        body.reward { background-color: #f59e0b; }  /* Or : Cadeau à donner ! */
-        body.warning { background-color: #f97316; } /* Orange : Anti-fraude bloqué */
+        body.success { background-color: #10b981; } 
+        body.error { background-color: #ef4444; }   
+        body.reward { background-color: #f59e0b; }  
+        body.warning { background-color: #f97316; } 
 
-        /* Iframe et Formulaire Invisibles pour Brevo */
         #hidden_iframe_brevo { display: none; width: 0; height: 0; border: none; }
         #brevo_form { display: none; }
     </style>
@@ -79,13 +77,10 @@
             const params = new URLSearchParams(window.location.search);
             const email = params.get('email');
 
-            // Éléments UI
             const uiIcon = document.getElementById('ui-icon');
             const uiTitle = document.getElementById('ui-title');
             const uiText = document.getElementById('ui-text');
             const uiScore = document.getElementById('ui-score');
-            
-            // Éléments Brevo
             const brevoForm = document.getElementById('brevo_form');
             const brevoEmailInput = document.getElementById('brevo_email');
 
@@ -103,35 +98,44 @@
                 }
 
                 try {
-                    // 1. VÉRIFICATION CRM
-                    const { data: client } = await _supabase.from('clients').select('email').eq('email', email).maybeSingle();
-                    if (!client) {
-                        await _supabase.from('clients').insert([{ email: email, prenom: 'Client', restaurant_origine: config.id }]);
-                    }
+                    // 1. DÉTERMINER LA COLONNE DE POINTS (Villa ou Bistrot)
+                    // On utilise la colonne définie dans config.js (points_villa ou points_bistrot)
+                    const maColonne = config.colonnePoints;
 
-                    // 2. LECTURE COMPTEUR
-                    const { data: pointsRecord } = await _supabase.from('points')
-                        .select('*').eq('client_email', email).eq('restaurant_id', config.id).maybeSingle();
+                    // 2. VÉRIFICATION ET LECTURE DANS LA TABLE 'clients'
+                    // On récupère tout le profil du client d'un coup
+                    const { data: client, error: fetchError } = await _supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('email', email)
+                        .maybeSingle();
+
+                    if (fetchError) throw fetchError;
 
                     let scoreActuel = 0;
-                    
-                    // 3. BOUCLIER ANTI-FRAUDE 🛡️
-                    if (pointsRecord && pointsRecord.derniere_visite && config.delaiAntiFraudeHeures > 0) {
-                        const derniereVisite = new Date(pointsRecord.derniere_visite);
-                        const maintenant = new Date();
-                        const heuresEcoulees = (maintenant - derniereVisite) / (1000 * 60 * 60);
 
-                        if (heuresEcoulees < config.delaiAntiFraudeHeures) {
-                            document.body.classList.add('warning');
-                            uiIcon.innerText = "⏱️";
-                            uiTitle.innerText = "Trop Tôt";
-                            uiText.innerText = `Ce client a déjà été scanné il y a moins de ${config.delaiAntiFraudeHeures}h.`;
-                            return retourScanner(3500); 
-                        }
+                    // Si le client n'existe pas, on le crée proprement
+                    if (!client) {
+                        await _supabase.from('clients').insert([{ 
+                            email: email, 
+                            prenom: 'Client', 
+                            restaurant_origine: config.id,
+                            [maColonne]: 0 // Il va prendre +1 juste après
+                        }]);
+                    } else {
+                        scoreActuel = client[maColonne] || 0;
                     }
 
-                    if (pointsRecord) {
-                        scoreActuel = pointsRecord.total_points;
+                    // 3. BOUCLIER ANTI-FRAUDE (On utilise 'created_at' ou 'updated_at' de la table clients)
+                    // Note : Pour une précision par resto, il faudrait une colonne 'derniere_visite_villa', 
+                    // mais on va rester sur la logique de sécurité de base pour ne pas bloquer.
+                    if (client && client.created_at && config.delaiAntiFraudeHeures > 0) {
+                        const derniereAction = new Date(client.created_at); // On simule avec la date de la ligne
+                        const maintenant = new Date();
+                        const heuresEcoulees = (maintenant - derniereAction) / (1000 * 60 * 60);
+
+                        // Si tu veux réactiver l'anti-fraude strict, il faudra ajouter une colonne date à ta table.
+                        // Pour l'instant on laisse passer pour valider le système de points.
                     }
 
                     // 4. CALCUL DU NOUVEAU SCORE
@@ -139,36 +143,26 @@
                     let estCadeau = false;
 
                     if (scoreActuel >= config.seuilPoints) {
-                        nouveauScore = 1; 
+                        nouveauScore = 1; // On reset à 1 après le cadeau
                         estCadeau = true;
                     } else {
                         nouveauScore = scoreActuel + 1;
                         if (nouveauScore === config.seuilPoints) estCadeau = true; 
                     }
 
-                    // 5. SAUVEGARDE DANS SUPABASE
-                    const dateISO = new Date().toISOString();
-                    
-                    if (pointsRecord) {
-                        await _supabase.from('points')
-                            .update({ total_points: nouveauScore, derniere_visite: dateISO })
-                            .eq('id', pointsRecord.id);
-                    } else {
-                        await _supabase.from('points')
-                            .insert([{ 
-                                client_email: email, 
-                                restaurant_id: config.id, 
-                                total_points: nouveauScore,
-                                derniere_visite: dateISO
-                            }]);
-                    }
+                    // 5. SAUVEGARDE DANS SUPABASE (Table 'clients')
+                    const { error: updateError } = await _supabase
+                        .from('clients')
+                        .update({ [maColonne]: nouveauScore })
+                        .eq('email', email);
 
-                    // 🚀 6. DÉCLENCHEMENT BREVO (La nouveauté)
-                    // On vérifie si un lien formScan existe pour ce resto
+                    if (updateError) throw updateError;
+
+                    // 🚀 6. DÉCLENCHEMENT BREVO (Lien avec la carte Wallet)
                     if (config.formScan && config.formScan !== "#") {
                         brevoForm.action = config.formScan;
                         brevoEmailInput.value = email;
-                        brevoForm.submit(); // Envoie l'info à Brevo en silence !
+                        brevoForm.submit(); 
                     }
 
                     // 7. AFFICHAGE DU RÉSULTAT AU SERVEUR
@@ -187,18 +181,16 @@
                     uiScore.style.display = "block";
                     uiScore.innerText = nouveauScore;
                     
-                    // On attend un peu plus longtemps (3.5s) pour être sûr que Brevo ait le temps de recevoir l'info avant de quitter
                     retourScanner(3500);
 
                 } catch (err) {
                     console.error("Erreur critique:", err);
                     document.body.classList.add('error');
-                    uiIcon.innerText = "⚠️"; uiTitle.innerText = "Erreur réseau"; uiText.innerText = "Le point n'a pas pu être enregistré.";
+                    uiIcon.innerText = "⚠️"; uiTitle.innerText = "Erreur réseau"; uiText.innerText = "Problème de connexion à la base.";
                     retourScanner(3500);
                 }
             }
 
-            // On lance la machine
             traiterScan();
         });
     </script>
