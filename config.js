@@ -25,8 +25,8 @@ const agenceClients = {
         delaiAntiFraudeHeures: 0.03, // Verrouille le compte : 12 heures d'attente requises entre deux scans 
         
         // 🔗 Liens Brevo & Externes 
-        formInscription: "https://9d65705b.sibforms.com/serve/MUIFANfE1Ud8qtliFwPa28l2_ezu8uq3LYTQgyIt1FJdCu6ADCk_qAvGFPQSFp6HtEVLnsSSBWPY0iWuOOLkQD9PtOzEg4zLN0fuwTKabJS3y5yW2LPzsf2FhbihtwWgWsAsrIamq8lCQvUuxIOb6Cn6zN8x4QyFFwDvc_x03QZONNextkyrknz6Uqew8VmYb2VoF5aYAXjhiNuf6A==",
-        formScan: "https://9d65705b.sibforms.com/serve/MUIFADjqIProT_Cl28inJrj0bX2b4zK_XA-Ov9LDV2gWtskwsKQ7VVo09QVM5hlDGzylzy6392uTx_swkr0hHIW_VqQybc45jJR5TbzoCVHjs8OaZqF1BF4j-j2hbOTYyNbscvcENAbY2zKv6QDi8hTpGkzLbe-2Ng8qNIkZaPO7yAU4sy6CCAxOAZhIpb1H-gBjsPxIEeL9bWuUsg==",
+        formInscription: "https://9d65705b.sibforms.com/serve/MUIFAESstQ4kFjs5tSSEuAUb078K1PIdoNELBwJ7tLNuNoHf11B7lT3xWSCj01e8LU6zBl3BXuyVmK0K9Me9TqGZsy08pGdId-xDEyzGZyKVRCk7xtuKVsixH0tGiylUQVp9xq-StGMmJQdXnxKrCRE7YI9k_jOZxSVXa7GCvMhzOnfiKpgaqbx1lt2gQolqG2f6jNd-9IU4pBDQBw==",
+        formScan: "https://9d65705b.sibforms.com/serve/MUIFAOePOBZfsMcBcRLjNHxzRRcE4JOO7KkIUUl-70j1fNtHkfMPRTWW5Zuy7zF3UyGwNof6y9ODrHL0GFlLIiA3QI9rRSYJFzPV3BAyXnMvbpWYnuY7XxrzYz3WLZ3oCE_HCWSE8cdc-g2-cQTG0dFVOvrT1QYgiC2ierk8TDGGCxyssJTlSQLC_dBpY4bhkKVf2BOm6JhOvoTSlQ==",
         lienAvisGoogle: "https://g.page/r/bistrot-exemple" 
     }, 
 
