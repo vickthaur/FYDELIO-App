@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Félicitations !</title>
+    <title>Félicitations ! | FYDELIO</title>
     
     <script src="config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #10b981; /* Vert par défaut, sera remplacé par config.js */
-            --primary-glow: rgba(16, 185, 129, 0.1);
+            --primary: #0F766E; /* Vert FYDELIO */
+            --primary-glow: rgba(15, 118, 110, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,12 +32,12 @@
             background: #ffffff; 
             width: 100%; 
             max-width: 420px; 
-            border-radius: 24px; 
+            border-radius: 32px; 
             padding: 50px 30px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.04); 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08); 
             text-align: center; 
             position: relative; 
-            border: 1px solid rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.04);
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -46,14 +46,14 @@
             100% { opacity: 1; transform: scale(1); }
         }
 
-        /* L'encoche de couleur en haut */
-        .card::before { 
-            content: ''; 
-            position: absolute; 
-            top: 0; left: 0; right: 0; 
-            height: 6px; 
-            background: var(--primary); 
-            border-radius: 24px 24px 0 0;
+        .brand-badge {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            opacity: 0.7;
         }
         
         .icon-check { 
@@ -78,40 +78,52 @@
             margin-bottom: 15px; 
         }
 
-        h1 { font-size: 28px; font-weight: 800; margin-bottom: 15px; color: #0f172a; }
+        h1 { font-size: 28px; font-weight: 800; margin-bottom: 15px; color: #0f172a; letter-spacing: -0.5px; }
         
         .subtitle { font-size: 15px; color: #64748b; margin-bottom: 35px; line-height: 1.6; }
-        .subtitle strong { color: var(--primary); }
+        .subtitle strong { color: var(--primary); font-weight: 700; }
 
         .btn-retour { 
             display: inline-block;
             width: 100%; 
-            background: #f1f5f9; 
-            color: #475569; 
+            background: var(--primary); 
+            color: white; 
             text-decoration: none;
-            padding: 16px; 
-            border-radius: 14px; 
+            padding: 18px; 
+            border-radius: 16px; 
             font-size: 15px; 
             font-weight: 700; 
             transition: all 0.3s ease; 
+            box-shadow: 0 10px 15px -3px var(--primary-glow);
         }
 
         .btn-retour:hover { 
-            background: #e2e8f0; 
-            color: #1e293b;
             transform: translateY(-2px); 
+            filter: brightness(1.1);
+            box-shadow: 0 15px 20px -3px var(--primary-glow);
         }
 
         .footer-info {
             margin-top: 30px;
             font-size: 12px;
             color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .fydelio-footer {
+            margin-top: 40px;
+            font-size: 10px;
+            color: #cbd5e1;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
 
     <div class="card">
+        <div class="brand-badge">Validation FYDELIO</div>
         <div class="icon-check">✨</div>
         <div class="restaurant-name nom-resto">Chargement...</div>
         
@@ -123,27 +135,33 @@
         </p>
 
         <p style="font-size: 13px; color: #94a3b8; margin-bottom: 35px; line-height: 1.5;">
-            Vérifiez vos emails : vous allez recevoir votre carte digitale d'ici quelques instants.
+            Vérifiez vos emails : vous allez recevoir votre carte digitale <strong>FYDELIO</strong> d'ici quelques instants.
         </p>
 
-        <a id="link-retour" href="#" class="btn-retour">Retour à l'accueil</a>
+        <a id="link-retour" href="#" class="btn-retour">Accéder à ma carte</a>
 
         <div class="footer-info">
             À très vite chez <span class="nom-resto"></span> !
         </div>
+
+        <div class="fydelio-footer">Secured by FYDELIO</div>
     </div>
 
     <script>
-        // 1. On applique la configuration (Couleurs, Nom du resto)
+        // 1. On applique la configuration FYDELIO (Couleurs, Nom du resto)
         let config = {};
         if (typeof appliquerConfig === "function") {
             config = appliquerConfig();
         }
 
-        // 2. On branche le bouton de retour sur l'accueil spécifique du resto
-        // Exemple : index.html?resto=villa_saint_antoine
+        // 2. Le bouton renvoie vers la carte du client (app.html)
+        // On récupère l'email s'il est dans l'URL pour faciliter le retour
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email') || "";
         const restoID = config.id || "bistrot";
-        document.getElementById('link-retour').href = "index.html?resto=" + restoID;
+        
+        // Lien vers la Web App
+        document.getElementById('link-retour').href = "app.html?resto=" + restoID + "&email=" + email;
     </script>
 
 </body>
