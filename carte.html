@@ -106,6 +106,18 @@
         .wallet-btn img { width: 20px; height: 20px; }
         .wallet-btn:hover { background: #1e293b; border-color: var(--primary); }
 
+        /* CSS BIENTÔT DISPONIBLE */
+        .disabled-btn {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border: none;
+        }
+        .disabled-btn:hover {
+            background: #000;
+            border-color: rgba(255,255,255,0.2);
+            transform: none;
+        }
+
         .btn-avis {
             display: none; width: 100%; background: var(--primary); color: white; 
             text-decoration: none; padding: 15px; border-radius: 14px; 
@@ -149,16 +161,16 @@
             <p class="instructions">Présentez ce QR Code lors de votre passage<br>pour cumuler vos points.</p>
             
             <div class="wallet-actions">
-                <p class="wallet-title">Ajouter à votre téléphone</p>
+                <p class="wallet-title">Bientôt dans votre Wallet</p>
                 <div class="wallet-buttons">
-                    <a href="#" id="apple-wallet" class="wallet-btn">
+                    <button class="wallet-btn disabled-btn" onclick="alert('L\'intégration Apple Wallet et Google Wallet sera disponible très prochainement ! En attendant, ajoutez cette page à votre écran d\'accueil.')">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Wallet_Icon.svg" alt="Apple Wallet">
                         Apple
-                    </a>
-                    <a href="#" id="google-wallet" class="wallet-btn">
+                    </button>
+                    <button class="wallet-btn disabled-btn" onclick="alert('L\'intégration Apple Wallet et Google Wallet sera disponible très prochainement ! En attendant, ajoutez cette page à votre écran d\'accueil.')">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Wallet_Icon.svg" alt="Google Wallet">
                         Google
-                    </a>
+                    </button>
                 </div>
             </div>
 
