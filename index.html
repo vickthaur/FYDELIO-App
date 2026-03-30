@@ -144,11 +144,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const config = appliquerConfig(); // Utilise le moteur FYDELIO de config.js
+            const config = appliquerConfig(); 
             const form = document.getElementById('form-inscription');
             const btn = document.getElementById('btn-submit');
             const visualIcon = document.getElementById('visual-icon');
 
+            // On garde ta logique d'icônes par resto
             if (config.id !== "default") {
                 form.action = config.formInscription;
                 if (config.id === "villa_saint_antoine") visualIcon.innerHTML = "🏛️";
@@ -169,20 +170,24 @@
                 try {
                     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     
-                    // Enregistrement dans la table unique
+                    // --- LA CORRECTION EST ICI ---
+                    const colPoints = (config.id === 'villa_saint_antoine') ? 'points_villa' : 'points_bistrot';
+                    
                     await _supabase.from('clients').upsert({ 
                         email: emailVal, 
                         prenom: prenomVal,
                         nom: nomVal,
                         telephone: smsVal,
                         date_anniversaire: annivVal,
-                        restaurant_origine: config.id
-                    });
+                        restaurant_origine: config.id,
+                        [colPoints]: config.pointsBienvenue // Force l'ajout du point de bienvenue
+                    }, { onConflict: 'email' });
+                    // -----------------------------
 
-                    // Envoi Brevo
+                    // On garde ton envoi vers Brevo
                     form.submit();
 
-                    // UI Succès
+                    // On garde ton affichage de succès
                     setTimeout(() => {
                         document.getElementById('form-state').style.display = 'none';
                         document.getElementById('success-state').style.display = 'block';
@@ -190,7 +195,7 @@
 
                 } catch (err) {
                     console.error("FYDELIO Sync Error:", err);
-                    form.submit();
+                    form.submit(); // Sécurité : on tente Brevo même si Supabase a un souci
                 }
             });
         });
