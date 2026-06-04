@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const smsRaw    = smsInput.value.replace(/\D/g,'').substring(0,9);
         const smsVal    = smsRaw ? `+33${smsRaw}` : null;
         const annivVal  = document.getElementById('champ-anniversaire').value.trim() || null;
-        const colPoints = config.id === 'villa_saint_antoine' ? 'points_villa' : 'points_bistrot';
+       const colPoints = config.colonnePoints;
 
         try {
             const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
