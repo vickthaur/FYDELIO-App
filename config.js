@@ -60,7 +60,27 @@ const agenceClients = {
         formInscription: "https://9d65705b.sibforms.com/serve/MUIFAPNZrGyP3i0xNF-FdppNziEkhvnAiLtRY8uUfol3hxIyq6VHE11ofNd5fjQp_Iq7tjv6nklXAhjOPj_Le1u6Wxz_U2NCQLtoBMgkuGrjRNvCwMzFg7KcWEyXIcW-JPoDtL2QizWiwcOJl5-G96lbhakbnyeJT1cxI_8ZV4SVOfBt8CDOHTGIi-KdJSAAPTHMADTN5Gyt8PgqdA==",
         formScan:        "https://9d65705b.sibforms.com/serve/MUIFAJDcz_H5hCbvQ9g1SOqKVyAo5fIPRSH5Av5deHgtWT5pF0ZkzbdcnwySESsegIdFuxzkw8rMMZkfiUMzvAMDfIaGzl42YBw1P3Fw1H1Z6B914_I3TwYpVPNWMv0nqARUMZI8bG2Cja6rYBZ6EAkXhGLetQKjHnDCX4EP0I8Gv7Te36b1rLjJiUI4Fas-3uxA1-XpotgR3ujdWg==",
         lienAvisGoogle:  "https://g.page/r/villa-exemple" 
-    }, 
+    },
+    
+    // 🔵 CLIENT 3 : LE CERCLE RESTAURANT
+"le_cercle": { 
+    id: "le_cercle",  
+    actif: true, 
+    nom: "Le Cercle Restaurant", 
+    couleur: "#1B5E6F",  
+    
+    colonnePoints: "points_le_cercle",
+    colonneSecu:   "last_scan_le_cercle",
+    
+    seuilPoints:       10, 
+    recompense:        "10 points = 1 cadeau 🍽️", 
+    pointsBienvenue:   1, 
+    delaiAntiFraudeHeures: 8, 
+    
+    formInscription: "https://9d65705b.sibforms.com/serve/MUIFAAq8Zq46uohNk6P_X8-iEDt-W7cd4Pu9qyW6UTzcJb0lmoTQNOX_MlYnJah58xcHTPTx5ibhKG8JLPvgRlfzi_u4xRTuE1EaXDbq2jmA0xKVYwdeiJhNsVx743cDGVUVNOMZ7JmWIrxwmPHczzPRWx2_Dw6ZtaR2tRbZHAu6gJeda0lSdYWw1oDf7EUmDQWLY-X-ZgkbVABjMg==",
+    formScan:        "https://9d65705b.sibforms.com/serve/MUIFANxsMpjJJ-tVbxuUjEEyLbUn0DgrwxJNycClPHSWGt7jmrNAFdLhbiY3rVCp2Nm8M-B1Eyh22ybn_XGjOVHsxhDaduSL-c96btTOwhSdtqmaha6Kn-L3TRwK59CVb5NVAJ0MgMyANlIdoibtI-aUkbA5lGz9faK9_uRAUrttPWUdZGANL3ym432kzWLGQquXFOe5mWGQCXb0_g==",
+    lienAvisGoogle:  "https://g.page/r/lecercle-restaurant" 
+},
     
     // ⚪ MODE NEUTRE 
     "default": { 
