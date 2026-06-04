@@ -15,7 +15,7 @@ const SUPABASE_KEY  = "sb_publishable_EbKZkPjtT8rwkEdw3oVRCg_mBJJ_gNJ";
 // Toutes les écritures (inscription, scan) passent par ici
 // La clé service_role est cachée côté Google, jamais exposée
 // ====================================================================
-const PROXY_URL = "https://script.google.com/macros/s/AKfycbxtKWpopH4mcEClQvCBgpL-tbVEEIxoZ8HC0XjlxZUrQkhfbUSMIScYijHt50NHPa1fHg/exec";
+const PROXY_URL = "https://script.google.com/macros/s/AKfycbwBp4-Q5ihfllaTdoPGhTb4vZ2-f-TIuPe9k21I12YQhR10ad9qZq03tSHF7FlfHrMZ/exec";
 
 // ====================================================================
 // 🏪 CONFIGURATION RESTAURANTS
