@@ -144,7 +144,7 @@
             return;
         }
 
-        const colPoints = config.id==='villa_saint_antoine' ? 'points_villa' : 'points_bistrot';
+      const colPoints = config.colonnePoints;
 
         try {
             const { data: client, error } = await _supabase
