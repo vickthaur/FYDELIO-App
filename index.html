@@ -141,6 +141,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (config.id === 'villa_saint_antoine') icon.innerHTML = '🏛️';
     if (config.id === 'bistrot')              icon.innerHTML = '🍷';
+    if (config.id === 'le_cercle')            icon.innerHTML = '⭕';
+
+    // ════════════════════════════════════════════════════════════
+    // 🧹 NETTOYAGE DES SAISIES — robuste (espaces, emojis, casse…)
+    // ════════════════════════════════════════════════════════════
+    function nettoyerTexte(str) {
+        if (!str) return '';
+        return str
+            // retire emojis & symboles décoratifs
+            .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{1F1E6}-\u{1F1FF}\u{2700}-\u{27BF}]/gu, '')
+            .replace(/\s+/g, ' ')   // espaces multiples → 1 seul
+            .trim();                // espaces début/fin
+    }
+    function capitaliser(str) {
+        return nettoyerTexte(str)
+            .toLowerCase()
+            .replace(/(^|[\s\-'])([a-zà-ÿ])/g, (m, sep, c) => sep + c.toUpperCase());
+    }
+    function nettoyerEmail(str) {
+        if (!str) return '';
+        return str.replace(/\s+/g, '').toLowerCase().trim(); // retire TOUS les espaces
+    }
 
     // Formatage SMS
     const smsInput = document.getElementById('champ-sms');
@@ -175,13 +197,28 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.textContent = 'Inscription en cours…';
         btn.disabled    = true;
 
-        const emailVal  = document.getElementById('champ-email').value.trim().toLowerCase();
-        const prenomVal = document.getElementById('champ-prenom').value.trim();
-        const nomVal    = document.getElementById('champ-nom').value.trim();
+        // ── Valeurs nettoyées ──
+        const emailVal  = nettoyerEmail(document.getElementById('champ-email').value);
+        const prenomVal = capitaliser(document.getElementById('champ-prenom').value);
+        const nomVal    = capitaliser(document.getElementById('champ-nom').value);
         const smsRaw    = smsInput.value.replace(/\D/g,'').substring(0,9);
         const smsVal    = smsRaw ? `+33${smsRaw}` : null;
         const annivVal  = document.getElementById('champ-anniversaire').value.trim() || null;
-       const colPoints = config.colonnePoints;
+        const colPoints = config.colonnePoints;
+
+        // ── Garde-fou : email valide minimal ──
+        if (!emailVal || !emailVal.includes('@') || !emailVal.includes('.')) {
+            alert('Veuillez saisir un email valide.');
+            btn.textContent = 'Activer ma carte fidélité 🚀';
+            btn.disabled = false;
+            return;
+        }
+        if (!prenomVal) {
+            alert('Veuillez saisir votre prénom.');
+            btn.textContent = 'Activer ma carte fidélité 🚀';
+            btn.disabled = false;
+            return;
+        }
 
         try {
             const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
