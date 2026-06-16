@@ -92,6 +92,12 @@
             border: none !important;
             background: black;
         }
+        #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 0 !important;
+        }
 
         #reader button {
             background: var(--primary) !important;
@@ -111,6 +117,20 @@
             font-size: 12px;
             margin-top: 10px;
             display: block;
+        }
+
+        /* Bouton de secours si l'autostart échoue */
+        .btn-start-camera {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: none;
         }
 
         /* Validation overlay */
@@ -135,6 +155,8 @@
         .validation-content {
             text-align: center;
             animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 2;
         }
 
         @keyframes slideUp {
@@ -219,6 +241,7 @@
             right: 0;
             bottom: 0;
             transition: background 0.3s ease;
+            z-index: 1;
         }
 
         .footer {
@@ -299,10 +322,11 @@
 
         <div class="camera-container">
             <div id="reader"></div>
+            <button class="btn-start-camera" id="btnStartCamera">📷 Activer la caméra</button>
         </div>
 
         <div class="footer">
-            Système Sécurisé FYDELIO v5.1 • Scan en Chaîne
+            Système Sécurisé FYDELIO v5.2 • Scan en Chaîne
         </div>
     </div>
 
@@ -332,7 +356,7 @@
         // État global
         let scanVerrouille = false;
         let scanCount = 0;
-        let html5QrcodeScanner = null;
+        let html5Qrcode = null;
 
         // Colonnes directement depuis la config
         const colPoints = config.colonnePoints;
@@ -348,6 +372,7 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         const scanCountDisplay = document.getElementById('scanCount');
         const nomRestoEl = document.querySelector('.nom-resto');
+        const btnStartCamera = document.getElementById('btnStartCamera');
 
         // Afficher le restaurant
         nomRestoEl.innerText = config.nom || 'Restaurant';
@@ -359,7 +384,6 @@
             validationText.innerText = text;
             validationClient.innerText = prenom || '';
 
-            // Reset classes
             validationOverlay.classList.remove('success', 'error', 'warning', 'reward');
             validationOverlay.classList.add(type);
 
@@ -378,10 +402,6 @@
             setTimeout(() => {
                 validationOverlay.classList.remove('show');
                 scanVerrouille = false;
-                // Refocus sur le scanner pour que ça rescanne tout de suite
-                if (html5QrcodeScanner) {
-                    html5QrcodeScanner.getRunningTrackSetting();
-                }
             }, 2500);
         }
 
@@ -420,17 +440,19 @@
                     }
                 }
 
-                // Calcul des points
+                // ────────────────────────────────────────────────────────────
+                //  CALCUL DES POINTS — LOGIQUE FYDELIO (corrigée)
+                //  • On ajoute toujours le point du passage.
+                //  • Le passage qui ATTEINT le seuil = cadeau, récompense
+                //    comptée UNE seule fois, puis remise à zéro nette.
+                // ────────────────────────────────────────────────────────────
                 const scoreActuel = client[colPoints] || 0;
-                let nouveauScore;
+                let nouveauScore = scoreActuel + 1;
                 let estCadeau = false;
 
-                if (scoreActuel >= config.seuilPoints) {
-                    nouveauScore = 1;
-                    estCadeau = true;
-                } else {
-                    nouveauScore = scoreActuel + 1;
-                    if (nouveauScore === config.seuilPoints) estCadeau = true;
+                if (nouveauScore >= config.seuilPoints) {
+                    estCadeau = true;     // atteinte du seuil = cadeau direct
+                    nouveauScore = 0;     // remise à zéro → nouveau cycle
                 }
 
                 // Mise à jour en base
@@ -479,71 +501,77 @@
             }
         }
 
-        // Initialiser scanner avec caméra arrière forcée
-        try {
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader",
-                {
-                    fps: 30,
-                    qrbox: { width: 280, height: 280 },
-                    aspectRatio: 1.0,
-                    useBarCodeDetectorIfAvailable: true
-                },
-                false
-            );
-
-            // Callback de scan réussi
-            function onScanSuccess(decodedText) {
-                traiterScan(decodedText);
-            }
-
-            function onScanError(error) {
-                // Ignorer les erreurs silencieuses
-                if (error && !error.message.includes('NotFoundException')) {
-                    console.warn('QR scan error:', error);
-                }
-            }
-
-            html5QrcodeScanner.render(onScanSuccess, onScanError);
-
-            // Force caméra arrière après initialisation
-            setTimeout(() => {
-                try {
-                    const cameras = document.querySelectorAll('select[id*="camera"]');
-                    if (cameras.length > 0) {
-                        cameras.forEach(select => {
-                            const options = Array.from(select.options);
-                            // Chercher "back", "rear", "environment"
-                            const backCamera = options.find(opt =>
-                                opt.text.toLowerCase().includes('back') ||
-                                opt.text.toLowerCase().includes('rear') ||
-                                opt.text.toLowerCase().includes('environment')
-                            );
-                            if (backCamera) {
-                                select.value = backCamera.value;
-                                select.dispatchEvent(new Event('change'));
-                            }
-                        });
-                    }
-                } catch (e) {
-                    console.log('Auto-select back camera: attempting facingMode override');
-                    // Fallback: utiliser facingMode via permissionHandler
-                    const scanner = document.querySelector('video');
-                    if (scanner && scanner.srcObject) {
-                        scanner.srcObject.getTracks().forEach(track => {
-                            const settings = track.getSettings();
-                            if (settings.facingMode !== 'environment') {
-                                track.stop();
-                            }
-                        });
-                    }
-                }
-            }, 500);
-
-        } catch (err) {
-            console.error('Scanner init error:', err);
-            showValidation('error', '⚠️', 'Erreur', 'Caméra non accessible');
+        // ────────────────────────────────────────────────────────────────
+        //  CAMÉRA — Sélection AUTOMATIQUE de la caméra arrière
+        //  On utilise Html5Qrcode (bas niveau) avec facingMode "environment".
+        //  Pas de menu, pas de clic : la caméra arrière démarre directement.
+        // ────────────────────────────────────────────────────────────────
+        function onScanSuccess(decodedText) {
+            traiterScan(decodedText);
         }
+
+        const scanConfig = {
+            fps: 30,
+            qrbox: { width: 280, height: 280 },
+            aspectRatio: 1.0,
+            useBarCodeDetectorIfAvailable: true
+        };
+
+        async function demarrerCamera() {
+            btnStartCamera.style.display = 'none';
+            if (!html5Qrcode) {
+                html5Qrcode = new Html5Qrcode("reader", { verbose: false });
+            }
+
+            try {
+                // Tentative 1 — caméra arrière directe via facingMode (strict)
+                await html5Qrcode.start(
+                    { facingMode: { exact: "environment" } },
+                    scanConfig,
+                    onScanSuccess,
+                    () => {} // on ignore les erreurs de frame (QR non trouvé)
+                );
+            } catch (e1) {
+                console.warn('facingMode exact:environment indisponible, tentative souple…', e1);
+                try {
+                    // Tentative 2 — facingMode souple (certains appareils refusent "exact")
+                    await html5Qrcode.start(
+                        { facingMode: "environment" },
+                        scanConfig,
+                        onScanSuccess,
+                        () => {}
+                    );
+                } catch (e2) {
+                    console.warn('facingMode environment indisponible, sélection manuelle…', e2);
+                    try {
+                        // Tentative 3 — lister les caméras et choisir l'arrière
+                        const cameras = await Html5Qrcode.getCameras();
+                        if (!cameras || cameras.length === 0) throw new Error('Aucune caméra détectée');
+
+                        const arriere = cameras.find(c =>
+                            /back|rear|arrière|environment/i.test(c.label)
+                        ) || cameras[cameras.length - 1]; // souvent la dernière = arrière
+
+                        await html5Qrcode.start(
+                            arriere.id,
+                            scanConfig,
+                            onScanSuccess,
+                            () => {}
+                        );
+                    } catch (e3) {
+                        console.error('Échec démarrage caméra:', e3);
+                        showValidation('error', '⚠️', 'Caméra', 'Impossible d\'accéder à la caméra. Vérifiez les autorisations.');
+                        btnStartCamera.style.display = 'inline-block';
+                    }
+                }
+            }
+        }
+
+        // Démarrage auto ; si le navigateur bloque l'autostart, le bouton prend le relais
+        demarrerCamera().catch(() => {
+            btnStartCamera.style.display = 'inline-block';
+        });
+        btnStartCamera.addEventListener('click', demarrerCamera);
     });
     </script>
 </body>
