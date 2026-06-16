@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Carte Poulet | FYDELIO</title>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --primary:#C2410C; --primary-glow:rgba(194,65,12,0.15); --gold:#f59e0b; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body {
+            font-family:'Plus Jakarta Sans',sans-serif;
+            background:#1A0F0A; color:white;
+            min-height:100vh; display:flex; flex-direction:column;
+            align-items:center; padding:24px 16px 40px;
+            background-image:radial-gradient(circle at top center,var(--primary-glow) 0%,transparent 60%);
+        }
+        .card {
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+            width:100%; max-width:420px; border-radius:28px; padding:32px 26px;
+            text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.4); backdrop-filter:blur(10px);
+        }
+        .brand-tag { font-size:10px; font-weight:800; color:var(--primary); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+        .resto-nom { font-size:13px; text-transform:uppercase; letter-spacing:3px; color:rgba(255,255,255,0.6); font-weight:800; margin-bottom:18px; }
+        .client-nom { font-size:24px; font-weight:800; margin-bottom:4px; }
+        .client-sub { font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:24px; }
+
+        /* QR */
+        .qr-box { background:white; border-radius:20px; padding:18px; display:inline-block; margin-bottom:24px; }
+        .qr-box img, .qr-box canvas { display:block; border-radius:8px; }
+
+        /* Grille de tampons */
+        .tampons { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:22px; }
+        .tampon {
+            aspect-ratio:1; border-radius:50%; border:2px dashed rgba(255,255,255,0.2);
+            display:flex; align-items:center; justify-content:center; font-size:26px;
+            background:rgba(255,255,255,0.03); transition:all 0.3s; position:relative;
+        }
+        .tampon.rempli {
+            border:2px solid var(--primary); border-style:solid;
+            background:radial-gradient(circle, rgba(194,65,12,0.35), rgba(194,65,12,0.12));
+            animation:pop 0.4s cubic-bezier(0.16,1,0.3,1);
+        }
+        .tampon.bientot { border-color:var(--gold); }
+        @keyframes pop { 0% { transform:scale(0.4); } 60% { transform:scale(1.12); } 100% { transform:scale(1); } }
+
+        .progress-text { font-size:15px; font-weight:700; margin-bottom:6px; }
+        .progress-text strong { color:var(--primary); font-size:18px; }
+        .progress-hint { font-size:13px; color:rgba(255,255,255,0.6); line-height:1.5; margin-bottom:20px; }
+
+        .reward-banner {
+            background:linear-gradient(135deg, rgba(245,158,11,0.25), rgba(217,119,6,0.12));
+            border:1px solid rgba(245,158,11,0.4); border-radius:16px; padding:16px;
+            font-size:14px; font-weight:700; color:#fde68a; margin-bottom:20px;
+        }
+        .offerts-badge {
+            display:inline-flex; align-items:center; gap:8px;
+            background:rgba(245,158,11,0.15); color:var(--gold);
+            padding:8px 16px; border-radius:100px; font-size:13px; font-weight:800; margin-bottom:8px;
+        }
+
+        .loading { padding:60px 0; color:rgba(255,255,255,0.6); }
+        .spinner { width:32px; height:32px; border:3px solid rgba(255,255,255,0.2); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 14px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .erreur { padding:40px 20px; color:#fca5a5; font-size:14px; line-height:1.6; }
+
+        .footer { margin-top:22px; font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; text-transform:uppercase; font-weight:700; }
+        .refresh-hint { font-size:11px; color:rgba(255,255,255,0.4); margin-top:14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="brand-tag">🍗 Carte Poulet</div>
+        <div class="resto-nom nom-resto">Le Cercle</div>
+
+        <div id="contenu">
+            <div class="loading">
+                <div class="spinner"></div>
+                Chargement de votre carte…
+            </div>
+        </div>
+
+        <div class="footer">Programme FYDELIO • Carnet de 10</div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const config    = appliquerConfig();
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const params    = new URLSearchParams(window.location.search);
+        const email     = (params.get('email') || '').toLowerCase().trim();
+
+        const COL_POULETS    = 'poulets_le_cercle';
+        const COL_RECOMPENSE = 'poulets_recompenses_le_cercle';
+        const SEUIL_POULET   = 10;
+
+        const contenu = document.getElementById('contenu');
+        document.querySelector('.nom-resto').innerText = config.nom || 'Le Cercle';
+
+        if (!email) {
+            contenu.innerHTML = '<div class="erreur">Lien invalide : aucun email fourni.<br>Scannez à nouveau votre QR Code d\'inscription.</div>';
+            return;
+        }
+
+        try {
+            const { data: client, error } = await _supabase
+                .from('clients')
+                .select(`prenom, nom, email, ${COL_POULETS}, ${COL_RECOMPENSE}`)
+                .eq('email', email)
+                .maybeSingle();
+
+            if (error) throw error;
+            if (!client) {
+                contenu.innerHTML = '<div class="erreur">Carte introuvable.<br>Vérifiez que vous êtes bien inscrit au programme.</div>';
+                return;
+            }
+
+            const poulets  = client[COL_POULETS] || 0;
+            const offerts  = client[COL_RECOMPENSE] || 0;
+            const pleine   = poulets >= SEUIL_POULET;
+
+            // Grille de 10 tampons
+            let tamponsHtml = '<div class="tampons">';
+            for (let i = 1; i <= SEUIL_POULET; i++) {
+                const rempli = i <= poulets;
+                const bientot = !rempli && i === poulets + 1 && poulets >= SEUIL_POULET - 2;
+                tamponsHtml += `<div class="tampon ${rempli ? 'rempli' : ''} ${bientot ? 'bientot' : ''}">${rempli ? '🍗' : ''}</div>`;
+            }
+            tamponsHtml += '</div>';
+
+            // Bannière selon l'état
+            let banner = '';
+            if (pleine) {
+                banner = '<div class="reward-banner">🎉 Carte pleine ! Votre prochain poulet est <strong>OFFERT</strong> à votre prochaine visite.</div>';
+            } else {
+                const restants = SEUIL_POULET - poulets;
+                banner = `<div class="progress-text">Plus que <strong>${restants}</strong> poulet${restants>1?'s':''} avant le poulet offert 🍗</div>`;
+            }
+
+            const offertsBadge = offerts > 0
+                ? `<div class="offerts-badge">🏆 ${offerts} poulet${offerts>1?'s':''} déjà offert${offerts>1?'s':''}</div><br>`
+                : '';
+
+            contenu.innerHTML = `
+                <div class="client-nom">${client.prenom || 'Client'} ${client.nom || ''}</div>
+                <div class="client-sub">Présentez ce QR au comptoir</div>
+
+                <div class="qr-box"><div id="qrcode"></div></div>
+
+                ${tamponsHtml}
+                ${banner}
+                ${offertsBadge}
+
+                <div class="progress-hint">10 poulets achetés = 1 poulet offert.<br>Le serveur scanne votre carte à chaque achat.</div>
+                <div class="refresh-hint">Rechargez la page pour voir vos derniers poulets.</div>
+            `;
+
+            // Génère le QR (contient l'email, comme la carte fidélité classique)
+            new QRCode(document.getElementById('qrcode'), {
+                text: client.email,
+                width: 180, height: 180,
+                colorDark: '#1A0F0A', colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+        } catch (err) {
+            console.error('Carte poulet error:', err);
+            contenu.innerHTML = '<div class="erreur">Erreur de chargement.<br>Vérifiez votre connexion et réessayez.</div>';
+        }
+    });
+    </script>
+</body>
+</html>
