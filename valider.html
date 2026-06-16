@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validation | FYDELIO</title>
-    
+
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-    
+
     <style>
         :root { --primary: #0F766E; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #0f172a; color: white; 
-            display: flex; justify-content: center; align-items: center; 
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a; color: white;
+            display: flex; justify-content: center; align-items: center;
             height: 100vh; text-align: center; overflow: hidden;
             transition: background-color 0.4s cubic-bezier(0.16,1,0.3,1);
         }
@@ -66,9 +66,11 @@
         const uiScore  = document.getElementById('ui-score');
         const uiClient = document.getElementById('ui-client');
 
-        // Colonnes selon le restaurant
-        const colPoints = config.id === 'villa_saint_antoine' ? 'points_villa'    : 'points_bistrot';
-        const colSecu   = config.id === 'villa_saint_antoine' ? 'last_scan_villa' : 'last_scan_bistrot';
+        // ✅ Colonnes lues DIRECTEMENT depuis la config du resto.
+        //    Fini le ternaire à 2 branches : les 3 restos (villa, bistrot,
+        //    le_cercle) sont gérés automatiquement via config.js.
+        const colPoints = config.colonnePoints;   // ex: points_le_cercle
+        const colSecu   = config.colonneSecu;      // ex: last_scan_le_cercle
 
         function retourScanner(delai) {
             setTimeout(() => {
@@ -85,6 +87,15 @@
                 uiTitle.innerText = 'Erreur';
                 uiText.innerText  = 'QR Code non reconnu.';
                 return retourScanner(3000);
+            }
+
+            // Sécurité : si la config n'a pas de colonne de points valide, on stoppe
+            if (!colPoints || !colSecu) {
+                document.body.classList.add('error');
+                uiIcon.innerText  = '⚠️';
+                uiTitle.innerText = 'Config invalide';
+                uiText.innerText  = 'Restaurant non configuré correctement.';
+                return retourScanner(4000);
             }
 
             const emailNormalise = email.toLowerCase().trim();
@@ -127,16 +138,20 @@
                 }
 
                 // 3. Calcul des points
+                // ────────────────────────────────────────────────────────────
+                //  LOGIQUE FYDELIO (corrigée — plus de double-comptage) :
+                //  • On ajoute toujours le point du passage.
+                //  • Si on ATTEINT le seuil → cadeau + récompense comptée 1 fois
+                //    + remise à zéro nette.
+                //  • Sinon → simple cumul.
+                // ────────────────────────────────────────────────────────────
                 const scoreActuel = client[colPoints] || 0;
-                let nouveauScore;
-                let estCadeau = false;
+                let   nouveauScore = scoreActuel + 1;
+                let   estCadeau    = false;
 
-                if (scoreActuel >= config.seuilPoints) {
-                    nouveauScore = 1;
-                    estCadeau    = true;
-                } else {
-                    nouveauScore = scoreActuel + 1;
-                    if (nouveauScore === config.seuilPoints) estCadeau = true;
+                if (nouveauScore >= config.seuilPoints) {
+                    estCadeau    = true;   // le passage qui atteint le seuil = cadeau
+                    nouveauScore = 0;      // remise à zéro → nouveau cycle
                 }
 
                 // 4. Mise à jour en base
