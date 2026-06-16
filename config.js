@@ -35,7 +35,7 @@ const agenceClients = {
         seuilPoints:       5, 
         recompense:        "5 points = 1 Dessert Offert 🍰", 
         pointsBienvenue:   1, 
-        delaiAntiFraudeHeures: 8, 
+        delaiAntiFraudeHeures: 0, 
         
         formInscription: "https://9d65705b.sibforms.com/serve/MUIFAESstQ4kFjs5tSSEuAUb078K1PIdoNELBwJ7tLNuNoHf11B7lT3xWSCj01e8LU6zBl3BXuyVmK0K9Me9TqGZsy08pGdId-xDEyzGZyKVRCk7xtuKVsixH0tGiylUQVp9xq-StGMmJQdXnxKrCRE7YI9k_jOZxSVXa7GCvMhzOnfiKpgaqbx1lt2gQolqG2f6jNd-9IU4pBDQBw==",
         formScan:        "https://9d65705b.sibforms.com/serve/MUIFAOePOBZfsMcBcRLjNHxzRRcE4JOO7KkIUUl-70j1fNtHkfMPRTWW5Zuy7zF3UyGwNof6y9ODrHL0GFlLIiA3QI9rRSYJFzPV3BAyXnMvbpWYnuY7XxrzYz3WLZ3oCE_HCWSE8cdc-g2-cQTG0dFVOvrT1QYgiC2ierk8TDGGCxyssJTlSQLC_dBpY4bhkKVf2BOm6JhOvoTSlQ==",
