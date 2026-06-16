@@ -26,6 +26,7 @@
         .form-group input{width:100%;padding:14px 16px;border:2px solid transparent;border-radius:14px;font-size:15px;font-weight:500;background-color:var(--input-bg);color:#0f172a;transition:all 0.25s ease;font-family:inherit;}
         .form-group input:focus{outline:none;background-color:#fff;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
         .form-group input::placeholder{color:#b0bec5;}
+        .form-group input.champ-erreur{border-color:#ef4444;background-color:#fef2f2;}
         .sms-wrapper{display:flex;border:2px solid transparent;border-radius:14px;background-color:var(--input-bg);overflow:hidden;transition:all 0.25s ease;}
         .sms-wrapper:focus-within{background-color:#fff;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
         .sms-prefix{display:flex;align-items:center;gap:6px;padding:14px 12px;font-size:14px;font-weight:700;color:#475569;border-right:1px solid rgba(0,0,0,0.08);white-space:nowrap;flex-shrink:0;}
@@ -47,6 +48,9 @@
         .btn-submit{width:100%;background:var(--primary);color:white;border:none;padding:18px;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;transition:all 0.3s ease;box-shadow:0 8px 20px -5px rgba(15,118,110,0.3);font-family:inherit;}
         .btn-submit:hover:not(:disabled){transform:translateY(-3px);}
         .btn-submit:disabled{background:#cbd5e1;cursor:not-allowed;transform:none;box-shadow:none;}
+        /* Message d'erreur visible (remplace les alert silencieux) */
+        .form-erreur{display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:16px;text-align:left;line-height:1.5;}
+        .form-erreur.show{display:block;}
         #success-state{display:none;padding:16px 0;}
         .success-icon{font-size:64px;margin-bottom:16px;}
         .legal-footer{margin-top:20px;font-size:10.5px;color:#b0bec5;line-height:1.7;font-weight:500;}
@@ -63,6 +67,8 @@
         <h1>Rejoignez le programme</h1>
         <p class="subtitle">Inscrivez-vous gratuitement et débloquez votre premier point.<br><strong class="texte-recompense">Chargement...</strong></p>
 
+        <div class="form-erreur" id="form-erreur"></div>
+
         <form id="form-inscription">
             <div class="form-grid">
                 <div class="form-group">
@@ -75,7 +81,7 @@
                 </div>
                 <div class="form-group full-width">
                     <label>Email <span class="required-star">*</span></label>
-                    <input type="email" id="champ-email" placeholder="jean@example.com" required autocomplete="email">
+                    <input type="email" id="champ-email" placeholder="jean@example.com" required autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false">
                 </div>
                 <div class="form-group full-width">
                     <label>Mobile <span class="required-star">*</span></label>
@@ -138,10 +144,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const form   = document.getElementById('form-inscription');
     const btn    = document.getElementById('btn-submit');
     const icon   = document.getElementById('visual-icon');
+    const erreurEl = document.getElementById('form-erreur');
 
     if (config.id === 'villa_saint_antoine') icon.innerHTML = '🏛️';
     if (config.id === 'bistrot')              icon.innerHTML = '🍷';
     if (config.id === 'le_cercle')            icon.innerHTML = '⭕';
+
+    const TEXTE_BTN = 'Activer ma carte fidélité 🚀';
+
+    // Affiche une vraie erreur visible (fini les alert silencieux / faux succès)
+    function afficherErreur(message) {
+        erreurEl.textContent = message;
+        erreurEl.classList.add('show');
+        erreurEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function masquerErreur() {
+        erreurEl.classList.remove('show');
+        erreurEl.textContent = '';
+    }
+    function reactiverBouton() {
+        btn.textContent = TEXTE_BTN;
+        btn.disabled    = false;
+    }
 
     // ════════════════════════════════════════════════════════════
     // 🧹 NETTOYAGE DES SAISIES — robuste (espaces, emojis, casse…)
@@ -149,10 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function nettoyerTexte(str) {
         if (!str) return '';
         return str
-            // retire emojis & symboles décoratifs
             .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{1F1E6}-\u{1F1FF}\u{2700}-\u{27BF}]/gu, '')
-            .replace(/\s+/g, ' ')   // espaces multiples → 1 seul
-            .trim();                // espaces début/fin
+            .replace(/\s+/g, ' ')
+            .trim();
     }
     function capitaliser(str) {
         return nettoyerTexte(str)
@@ -161,7 +184,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function nettoyerEmail(str) {
         if (!str) return '';
-        return str.replace(/\s+/g, '').toLowerCase().trim(); // retire TOUS les espaces
+        return str
+            .replace(/\s+/g, '')      // retire TOUS les espaces (y compris insérés par l'autocomplete)
+            .replace(/,/g, '.')        // virgule au lieu de point (clavier mobile) → corrige
+            .replace(/\.{2,}/g, '.')   // points multiples (jean..dupont) → un seul
+            .toLowerCase()
+            .trim();
+    }
+    // Validation email plus stricte qu'un simple "contient @"
+    function emailValide(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
     }
 
     // Formatage SMS
@@ -186,16 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
         annivInput.value = val;
     });
 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        masquerErreur();
 
         const consentFidelite  = document.getElementById('consent-fidelite').checked;
         const consentMarketing = document.getElementById('consent-marketing').checked;
 
-        if (!consentFidelite) { alert('Vous devez accepter la politique de fidélité.'); return; }
-
-        btn.textContent = 'Inscription en cours…';
-        btn.disabled    = true;
+        if (!consentFidelite) { afficherErreur('Vous devez accepter la politique de fidélité pour continuer.'); return; }
 
         // ── Valeurs nettoyées ──
         const emailVal  = nettoyerEmail(document.getElementById('champ-email').value);
@@ -206,54 +238,105 @@ document.addEventListener('DOMContentLoaded', () => {
         const annivVal  = document.getElementById('champ-anniversaire').value.trim() || null;
         const colPoints = config.colonnePoints;
 
-        // ── Garde-fou : email valide minimal ──
-        if (!emailVal || !emailVal.includes('@') || !emailVal.includes('.')) {
-            alert('Veuillez saisir un email valide.');
-            btn.textContent = 'Activer ma carte fidélité 🚀';
-            btn.disabled = false;
+        // ── Garde-fous de saisie (avant tout appel réseau) ──
+        const champEmail = document.getElementById('champ-email');
+        champEmail.classList.remove('champ-erreur');
+        if (!emailValide(emailVal)) {
+            champEmail.classList.add('champ-erreur');
+            afficherErreur('L\'adresse email semble incorrecte. Vérifiez qu\'il n\'y a pas de faute de frappe (ex : gmail.com, pas gmail.con).');
             return;
         }
         if (!prenomVal) {
-            alert('Veuillez saisir votre prénom.');
-            btn.textContent = 'Activer ma carte fidélité 🚀';
-            btn.disabled = false;
+            afficherErreur('Veuillez saisir votre prénom.');
             return;
         }
 
-        try {
-            const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        btn.textContent = 'Inscription en cours…';
+        btn.disabled    = true;
 
-            await _supabase.from('clients').upsert({
+        try {
+            // ────────────────────────────────────────────────────────
+            // ÉTAPE 1 — Le client existe-t-il déjà ? (pour ne PAS écraser
+            // ses points avec pointsBienvenue lors d'une réinscription)
+            // ────────────────────────────────────────────────────────
+            const { data: existant, error: lectureErr } = await _supabase
+                .from('clients')
+                .select(`email, ${colPoints}`)
+                .eq('email', emailVal)
+                .maybeSingle();
+
+            if (lectureErr) throw lectureErr;
+
+            // ────────────────────────────────────────────────────────
+            // ÉTAPE 2 — Construire la ligne à écrire.
+            // On n'inclut la colonne de points QUE pour un nouveau client.
+            // Un client existant garde ses points intacts.
+            // ────────────────────────────────────────────────────────
+            const ligne = {
                 email:              emailVal,
                 prenom:             prenomVal,
                 nom:                nomVal,
                 telephone:          smsVal,
                 date_anniversaire:  annivVal,
                 restaurant_origine: config.id,
-                [colPoints]:        config.pointsBienvenue,
                 optin_email:        consentMarketing,
                 optin_date:         new Date().toISOString(),
                 optin_source:       'formulaire_web'
-            }, { onConflict: 'email' });
+            };
+            if (!existant) {
+                ligne[colPoints] = config.pointsBienvenue;  // point de bienvenue, nouveau client seulement
+            }
 
-            // Envoi Brevo si opt-in
+            // ────────────────────────────────────────────────────────
+            // ÉTAPE 3 — Écriture, AVEC lecture de l'erreur (le vrai correctif).
+            // Si l'écriture échoue, on s'arrête ici : plus de faux "validé".
+            // ────────────────────────────────────────────────────────
+            const { error: upsertErr } = await _supabase
+                .from('clients')
+                .upsert(ligne, { onConflict: 'email' });
+
+            if (upsertErr) throw upsertErr;
+
+            // ────────────────────────────────────────────────────────
+            // ÉTAPE 4 — Relecture de CONTRÔLE : on vérifie que la ligne
+            // est bien lisible sous cet email exact AVANT de rediriger.
+            // Garantit qu'on n'enverra jamais vers une carte vide.
+            // ────────────────────────────────────────────────────────
+            const { data: verif, error: verifErr } = await _supabase
+                .from('clients')
+                .select('email')
+                .eq('email', emailVal)
+                .maybeSingle();
+
+            if (verifErr) throw verifErr;
+            if (!verif) {
+                throw new Error('La carte n\'a pas pu être confirmée. Veuillez réessayer.');
+            }
+
+            // Envoi Brevo si opt-in (non bloquant)
             if (consentMarketing && config.formInscription && config.formInscription !== '#') {
                 soumettreBrevo(config.formInscription, emailVal, prenomVal, nomVal, smsVal, annivVal, consentMarketing);
             }
 
-            document.getElementById('form-state').style.display  = 'none';
+            // ✅ Succès CONFIRMÉ — on affiche et on redirige seulement maintenant
+            document.getElementById('form-state').style.display    = 'none';
             document.getElementById('success-state').style.display = 'block';
 
-            // Redirection vers la carte avec l'email dans l'URL
             setTimeout(() => {
                 window.location.href = `carte.html?email=${encodeURIComponent(emailVal)}&resto=${config.id}`;
             }, 1200);
 
         } catch (err) {
             console.error('Inscription error:', err);
-            btn.textContent = 'Activer ma carte fidélité 🚀';
-            btn.disabled    = false;
-            alert('Une erreur est survenue. Réessayez.');
+            // Message adapté selon le type d'erreur
+            let msg = 'Une erreur est survenue lors de l\'inscription. Vérifiez votre connexion et réessayez.';
+            if (err && err.message && /network|fetch|failed/i.test(err.message)) {
+                msg = 'Connexion instable. Vérifiez votre réseau et réessayez.';
+            } else if (err && err.message && /confirm/i.test(err.message)) {
+                msg = err.message;
+            }
+            afficherErreur(msg);
+            reactiverBouton();
         }
     });
 
