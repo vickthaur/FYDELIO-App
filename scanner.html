@@ -326,7 +326,7 @@
         </div>
 
         <div class="footer">
-            Système Sécurisé FYDELIO v5.2 • Scan en Chaîne
+            Système Sécurisé FYDELIO v5.3 • Scan en Chaîne
         </div>
     </div>
 
@@ -440,19 +440,36 @@
                     }
                 }
 
-                // ────────────────────────────────────────────────────────────
-                //  CALCUL DES POINTS — LOGIQUE FYDELIO (corrigée)
-                //  • On ajoute toujours le point du passage.
-                //  • Le passage qui ATTEINT le seuil = cadeau, récompense
-                //    comptée UNE seule fois, puis remise à zéro nette.
-                // ────────────────────────────────────────────────────────────
+                // ════════════════════════════════════════════════════════════
+                //  CALCUL DES POINTS — LOGIQUE FYDELIO
+                //
+                //  Comportement voulu :
+                //   • Au passage qui ATTEINT le seuil → la carte affiche "5"
+                //     (carte pleine), le cadeau est annoncé, et la récompense
+                //     est comptée UNE seule fois.
+                //   • Le client garde son "5" affiché jusqu'à son prochain
+                //     passage.
+                //   • Au passage SUIVANT → la carte repart à 1 (nouveau cycle),
+                //     SANS recompter de récompense.
+                //
+                //  La récompense n'est comptée qu'au moment précis où on
+                //  atteint le seuil → plus jamais de double-comptage (+2).
+                // ════════════════════════════════════════════════════════════
                 const scoreActuel = client[colPoints] || 0;
-                let nouveauScore = scoreActuel + 1;
+                let nouveauScore;
                 let estCadeau = false;
 
-                if (nouveauScore >= config.seuilPoints) {
-                    estCadeau = true;     // atteinte du seuil = cadeau direct
-                    nouveauScore = 0;     // remise à zéro → nouveau cycle
+                if (scoreActuel >= config.seuilPoints) {
+                    // La carte était déjà pleine (ex: 5) → ce scan démarre un
+                    // nouveau cycle. Le cadeau a DÉJÀ été compté au tour précédent.
+                    nouveauScore = 1;
+                    estCadeau    = false;   // ← surtout PAS de récompense ici
+                } else {
+                    nouveauScore = scoreActuel + 1;
+                    if (nouveauScore >= config.seuilPoints) {
+                        // On vient d'atteindre le seuil → cadeau + comptage unique
+                        estCadeau = true;
+                    }
                 }
 
                 // Mise à jour en base
@@ -503,7 +520,7 @@
 
         // ────────────────────────────────────────────────────────────────
         //  CAMÉRA — Sélection AUTOMATIQUE de la caméra arrière
-        //  On utilise Html5Qrcode (bas niveau) avec facingMode "environment".
+        //  Html5Qrcode (bas niveau) + facingMode "environment".
         //  Pas de menu, pas de clic : la caméra arrière démarre directement.
         // ────────────────────────────────────────────────────────────────
         function onScanSuccess(decodedText) {
@@ -529,12 +546,12 @@
                     { facingMode: { exact: "environment" } },
                     scanConfig,
                     onScanSuccess,
-                    () => {} // on ignore les erreurs de frame (QR non trouvé)
+                    () => {}
                 );
             } catch (e1) {
                 console.warn('facingMode exact:environment indisponible, tentative souple…', e1);
                 try {
-                    // Tentative 2 — facingMode souple (certains appareils refusent "exact")
+                    // Tentative 2 — facingMode souple
                     await html5Qrcode.start(
                         { facingMode: "environment" },
                         scanConfig,
@@ -550,7 +567,7 @@
 
                         const arriere = cameras.find(c =>
                             /back|rear|arrière|environment/i.test(c.label)
-                        ) || cameras[cameras.length - 1]; // souvent la dernière = arrière
+                        ) || cameras[cameras.length - 1];
 
                         await html5Qrcode.start(
                             arriere.id,
@@ -567,7 +584,7 @@
             }
         }
 
-        // Démarrage auto ; si le navigateur bloque l'autostart, le bouton prend le relais
+        // Démarrage auto ; bouton de secours si le navigateur bloque l'autostart
         demarrerCamera().catch(() => {
             btnStartCamera.style.display = 'inline-block';
         });
