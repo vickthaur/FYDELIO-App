@@ -130,53 +130,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // ════════════════════════════════════════════════════════════════
     const BREVO_FORM_POULET = 'https://9d65705b.sibforms.com/serve/MUIFANxvasu5Oh1nJI9v0Hw47nxxujfzFWOicTLLxy7KL4UtmEV5W8XDzeX5V_7_pM5js0rE0xqTbPY4wV7Th-QvBOWLMc3w4vTpChXgiLnK_eqc-tFYHsb_4l1z54Hm1Ere0fBJp-s1cyR7rf2YY5-BfEjRd1CPEqja17zxQQ0N669hBxgim9BZeQqBOcFrW4zSXxy0IFFhyXOEpA==';
 
-    // Envoi silencieux vers Brevo via iframe cachée (méthode identique
-    // à inscription.html visites). N'empêche jamais l'inscription :
-    // si Brevo échoue ou n'est pas configuré, on continue.
-    function soumettreBrevo({ email, prenom, nom, smsRaw, anniv, pointsPoulet }) {
-        try {
-            if (!BREVO_FORM_POULET || BREVO_FORM_POULET === '#') return; // pas configuré
-
-            // iframe cachée pour ne pas quitter la page
-            let iframe = document.getElementById('brevo-iframe');
-            if (!iframe) {
-                iframe = document.createElement('iframe');
-                iframe.id = 'brevo-iframe';
-                iframe.name = 'brevo-iframe';
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-            }
-
-            // formulaire cible Brevo
-            const f = document.createElement('form');
-            f.action = BREVO_FORM_POULET;
-            f.method = 'POST';
-            f.target = 'brevo-iframe';
-            f.style.display = 'none';
-
-            // Champs Brevo standard (mêmes noms que le formulaire visites)
-            const champs = {
-                EMAIL:             email,
-                PRENOM:            prenom || '',
-                NOM:               nom || '',
-                SMS:               smsRaw ? `+33${smsRaw}` : '',
-                DATE_ANNIVERSAIRE: anniv || '',
-                POINTS_POULET:     (pointsPoulet ?? '').toString()
-            };
-            Object.entries(champs).forEach(([name, value]) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = value;
-                f.appendChild(input);
-            });
-
-            document.body.appendChild(f);
-            f.submit();
-            setTimeout(() => f.remove(), 1500);
-        } catch (e) {
-            console.warn('Brevo poulet (non bloquant) :', e);
+    // Envoi silencieux vers Brevo via iframe cachée — méthode IDENTIQUE
+    // à inscription.html visites (qui fonctionne). Signature positionnelle,
+    // iframe nommée 'brevo_iframe', removeChild à 2000ms.
+    // Seule différence : champ POINTS_POULET au lieu de OPT_IN.
+    function soumettreBrevo(actionUrl, email, prenom, nom, sms, anniversaire, pointsPoulet) {
+        if (!actionUrl || actionUrl === '#') return; // pas configuré
+        const tmpForm = document.createElement('form');
+        tmpForm.method='POST'; tmpForm.action=actionUrl; tmpForm.target='brevo_iframe'; tmpForm.style.display='none';
+        const champs = { 'EMAIL':email,'PRENOM':prenom,'NOM':nom,'SMS':sms||'','DATE_ANNIVERSAIRE':anniversaire||'','POINTS_POULET':(pointsPoulet ?? '').toString(),'email_address_check':'','locale':'fr' };
+        Object.entries(champs).forEach(([name,value]) => {
+            const input = document.createElement('input');
+            input.type='hidden'; input.name=name; input.value=value||'';
+            tmpForm.appendChild(input);
+        });
+        document.body.appendChild(tmpForm);
+        if (!document.getElementById('brevo_iframe')) {
+            const iframe = document.createElement('iframe');
+            iframe.name='brevo_iframe'; iframe.id='brevo_iframe'; iframe.style.display='none';
+            document.body.appendChild(iframe);
         }
+        tmpForm.submit();
+        setTimeout(() => document.body.removeChild(tmpForm), 2000);
     }
 
     function afficherErreur(msg) {
@@ -298,14 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const pouletsBrevo = (ligne[COL_POULETS] !== undefined)
                 ? ligne[COL_POULETS]
                 : (existant ? existant[COL_POULETS] : 1);
-            soumettreBrevo({
-                email:        emailVal,
-                prenom:       prenomVal,
-                nom:          nomVal,
-                smsRaw:       smsRaw,
-                anniv:        annivVal,
-                pointsPoulet: pouletsBrevo
-            });
+            if (BREVO_FORM_POULET && BREVO_FORM_POULET !== '#') {
+                soumettreBrevo(BREVO_FORM_POULET, emailVal, prenomVal, nomVal, smsVal, annivVal, pouletsBrevo);
+            }
 
             document.getElementById('form-state').style.display    = 'none';
             document.getElementById('success-state').style.display = 'block';
