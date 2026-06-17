@@ -210,11 +210,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!existant) {
                 ligne.restaurant_origine = 'le_cercle_poulet';
             }
-            // On initialise le compteur poulet à 0 UNIQUEMENT si le client
-            // n'est pas déjà inscrit au poulet (poulet NULL = pas inscrit).
-            // Un inscrit poulet existant garde son compteur intact.
+            // On initialise le compteur poulet à 1 (poulet de bienvenue)
+            // UNIQUEMENT si le client n'est pas déjà inscrit au poulet
+            // (poulet NULL = pas inscrit). Un inscrit poulet existant
+            // garde son compteur intact (on ne réoffre pas le bienvenue).
             if (!existant || existant[COL_POULETS] === null || existant[COL_POULETS] === undefined) {
-                ligne[COL_POULETS] = 0;   // inscrit poulet, 0 poulet acheté
+                ligne[COL_POULETS] = 1;   // inscrit poulet + 1 poulet de bienvenue
             }
 
             // ── ÉTAPE 3 — Écriture avec lecture de l'erreur ──
