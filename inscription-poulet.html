@@ -3,61 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription Carte Poulet | FYDELIO</title>
+    <title>FYDELIO | Carte Poulet</title>
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary:#C2410C; --primary-glow:rgba(194,65,12,0.12); --success-color:#10b981; --bg-color:#1A0F0A; --input-bg:rgba(255,255,255,0.05); }
+        :root { --primary:#C2410C; --primary-glow:rgba(194,65,12,0.12); --success-color:#10b981; --bg-color:#f8fafc; --input-bg:#f1f5f9; }
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{font-family:'Plus Jakarta Sans',sans-serif;background-color:var(--bg-color);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;color:white;padding:24px 16px 40px;background-image:radial-gradient(circle at top center,var(--primary-glow) 0%,transparent 55%);}
-        .card{background:rgba(255,255,255,0.04);width:100%;max-width:460px;border-radius:28px;padding:36px 30px;box-shadow:0 20px 48px -12px rgba(0,0,0,0.5);text-align:center;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(10px);}
-        .brand-badge{font-size:10px;font-weight:800;color:var(--primary);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
-        .logo-placeholder{font-size:52px;margin-bottom:12px;display:block;}
-        .restaurant-tag{font-size:11px;text-transform:uppercase;letter-spacing:3px;color:rgba(255,255,255,0.5);font-weight:800;margin-bottom:8px;}
-        h1{font-size:26px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;}
-        .subtitle{font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:26px;line-height:1.6;}
+        body{font-family:'Plus Jakarta Sans',sans-serif;background-color:var(--bg-color);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;color:#1e293b;padding:24px 16px 40px;background-image:radial-gradient(circle at top right,var(--primary-glow) 0%,transparent 55%);}
+        .card{background:#fff;width:100%;max-width:460px;border-radius:28px;padding:40px 32px;box-shadow:0 20px 48px -12px rgba(0,0,0,0.08);text-align:center;border:1px solid rgba(0,0,0,0.05);}
+        .brand-badge{font-size:10px;font-weight:800;color:var(--primary);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;opacity:0.7;}
+        .logo-placeholder{font-size:48px;margin-bottom:14px;display:block;}
+        .restaurant-tag{font-size:11px;text-transform:uppercase;letter-spacing:3px;color:#94a3b8;font-weight:800;margin-bottom:8px;}
+        h1{font-size:28px;font-weight:800;margin-bottom:8px;color:#0f172a;letter-spacing:-0.5px;}
+        .subtitle{font-size:14px;color:#64748b;margin-bottom:28px;line-height:1.6;}
         .subtitle strong{color:var(--primary);font-weight:800;}
         .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
         .full-width{grid-column:span 2;}
         .form-group{text-align:left;}
-        .form-group label{display:block;font-size:10px;font-weight:800;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+        .form-group label{display:block;font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
         .required-star{color:var(--primary);}
-        .form-group input{width:100%;padding:14px 16px;border:2px solid transparent;border-radius:14px;font-size:15px;font-weight:500;background-color:var(--input-bg);color:white;transition:all 0.25s ease;font-family:inherit;}
-        .form-group input:focus{outline:none;background-color:rgba(255,255,255,0.08);border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
-        .form-group input::placeholder{color:rgba(255,255,255,0.3);}
-        .form-group input.champ-erreur{border-color:#ef4444;background-color:rgba(239,68,68,0.1);}
+        .form-group input{width:100%;padding:14px 16px;border:2px solid transparent;border-radius:14px;font-size:15px;font-weight:500;background-color:var(--input-bg);color:#0f172a;transition:all 0.25s ease;font-family:inherit;}
+        .form-group input:focus{outline:none;background-color:#fff;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
+        .form-group input::placeholder{color:#b0bec5;}
+        .form-group input.champ-erreur{border-color:#ef4444;background-color:#fef2f2;}
         .sms-wrapper{display:flex;border:2px solid transparent;border-radius:14px;background-color:var(--input-bg);overflow:hidden;transition:all 0.25s ease;}
-        .sms-wrapper:focus-within{background-color:rgba(255,255,255,0.08);border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
-        .sms-prefix{display:flex;align-items:center;gap:6px;padding:14px 12px;font-size:14px;font-weight:700;color:rgba(255,255,255,0.7);border-right:1px solid rgba(255,255,255,0.1);white-space:nowrap;flex-shrink:0;}
-        .sms-input{flex:1;padding:14px 16px 14px 12px;border:none!important;border-radius:0!important;background:transparent!important;font-size:15px;font-weight:500;color:white;outline:none;font-family:inherit;}
-        .sms-input::placeholder{color:rgba(255,255,255,0.3);}
-        .consent-block{background:rgba(194,65,12,0.08);border:1px solid rgba(194,65,12,0.25);border-radius:16px;padding:16px 18px;margin-bottom:18px;text-align:left;}
-        .consent-row{display:flex;align-items:flex-start;gap:12px;}
+        .sms-wrapper:focus-within{background-color:#fff;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
+        .sms-prefix{display:flex;align-items:center;gap:6px;padding:14px 12px;font-size:14px;font-weight:700;color:#475569;border-right:1px solid rgba(0,0,0,0.08);white-space:nowrap;flex-shrink:0;}
+        .sms-input{flex:1;padding:14px 16px 14px 12px;border:none!important;border-radius:0!important;background:transparent!important;font-size:15px;font-weight:500;color:#0f172a;outline:none;font-family:inherit;}
+        .sms-input::placeholder{color:#b0bec5;}
+        .consent-block{background:#FFF7ED;border:1px solid rgba(194,65,12,0.2);border-radius:16px;padding:16px 18px;margin-bottom:18px;text-align:left;}
+        .consent-title{font-size:10px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;}
+        .consent-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+        .consent-row:last-child{margin-bottom:0;}
         .custom-checkbox{position:relative;flex-shrink:0;margin-top:1px;}
         .custom-checkbox input[type="checkbox"]{position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1;margin:0;}
-        .custom-checkbox .box{width:22px;height:22px;border:2px solid rgba(255,255,255,0.3);border-radius:7px;background:transparent;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;}
+        .custom-checkbox .box{width:22px;height:22px;border:2px solid #CBD5E1;border-radius:7px;background:white;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;}
         .custom-checkbox input:checked+.box{background:var(--primary);border-color:var(--primary);}
         .custom-checkbox input:checked+.box::after{content:'✓';color:white;font-weight:800;font-size:13px;}
-        .consent-text{font-size:12.5px;color:rgba(255,255,255,0.75);line-height:1.55;font-weight:500;}
-        .btn-submit{width:100%;background:var(--primary);color:white;border:none;padding:18px;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;transition:all 0.3s ease;box-shadow:0 8px 20px -5px rgba(194,65,12,0.4);font-family:inherit;}
+        .consent-text{font-size:12.5px;color:#475569;line-height:1.55;font-weight:500;}
+        .consent-text a{color:var(--primary);font-weight:700;text-decoration:none;}
+        .badge-obligatoire{display:inline-block;background:rgba(194,65,12,0.1);color:var(--primary);font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.5px;margin-left:4px;}
+        .badge-optionnel{display:inline-block;background:#F1F5F9;color:#94a3b8;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;text-transform:uppercase;letter-spacing:0.5px;margin-left:4px;}
+        .btn-submit{width:100%;background:var(--primary);color:white;border:none;padding:18px;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;transition:all 0.3s ease;box-shadow:0 8px 20px -5px rgba(194,65,12,0.3);font-family:inherit;}
         .btn-submit:hover:not(:disabled){transform:translateY(-3px);}
-        .btn-submit:disabled{background:#555;cursor:not-allowed;transform:none;box-shadow:none;}
-        .form-erreur{display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:16px;text-align:left;line-height:1.5;}
+        .btn-submit:disabled{background:#cbd5e1;cursor:not-allowed;transform:none;box-shadow:none;}
+        .form-erreur{display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:16px;text-align:left;line-height:1.5;}
         .form-erreur.show{display:block;}
         #success-state{display:none;padding:16px 0;}
         .success-icon{font-size:64px;margin-bottom:16px;}
+        .legal-footer{margin-top:20px;font-size:10.5px;color:#b0bec5;line-height:1.7;font-weight:500;}
+        .legal-footer a{color:#94a3b8;text-decoration:none;}
         @media(max-width:400px){.card{padding:28px 18px;}.form-grid{grid-template-columns:1fr;}.full-width{grid-column:span 1;}}
     </style>
 </head>
 <body>
 <div class="card">
     <div id="form-state">
-        <div class="brand-badge">🍗 Carte Poulet FYDELIO</div>
-        <div class="logo-placeholder">🍗</div>
-        <div class="restaurant-tag nom-resto">Le Cercle</div>
-        <h1>Carte Poulet</h1>
-        <p class="subtitle">Inscrivez-vous et collectez vos poulets.<br><strong>10 poulets achetés = 1 poulet offert !</strong></p>
+        <div class="brand-badge">Programme FYDELIO</div>
+        <div id="visual-icon" class="logo-placeholder">🍗</div>
+        <div class="restaurant-tag nom-resto">Chargement...</div>
+        <h1>Votre carte poulet</h1>
+        <p class="subtitle">Inscrivez-vous gratuitement et recevez votre premier poulet.<br><strong>10 poulets achetés = 1 poulet offert 🍗</strong></p>
 
         <div class="form-erreur" id="form-erreur"></div>
 
@@ -89,12 +96,27 @@
             </div>
 
             <div class="consent-block">
+                <div class="consent-title">🔐 Vos droits sur vos données</div>
                 <div class="consent-row">
                     <div class="custom-checkbox">
                         <input type="checkbox" id="consent-fidelite" required>
                         <div class="box"></div>
                     </div>
-                    <p class="consent-text">J'accepte que mes données soient utilisées pour la carte de fidélité poulet du Cercle.</p>
+                    <p class="consent-text">
+                        J'accepte que mes données soient utilisées pour mon programme de fidélité.
+                        <span class="badge-obligatoire">Obligatoire</span><br>
+                        <a href="politique-confidentialite.html" target="_blank">Politique de confidentialité →</a>
+                    </p>
+                </div>
+                <div class="consent-row">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="consent-marketing" checked>
+                        <div class="box"></div>
+                    </div>
+                    <p class="consent-text">
+                        J'accepte de recevoir des offres et actualités par email.
+                        <span class="badge-optionnel">Optionnel</span>
+                    </p>
                 </div>
             </div>
 
@@ -103,42 +125,220 @@
     </div>
 
     <div id="success-state">
-        <div class="success-icon">🍗</div>
+        <div class="success-icon">✨</div>
         <h2 style="font-size:24px;font-weight:800;color:var(--success-color);margin-bottom:10px;">C'est validé !</h2>
-        <p class="subtitle">Votre carte poulet est activée.<br>Redirection en cours...</p>
+        <p class="subtitle">Votre carte <strong>poulet</strong> est activée.<br>Redirection en cours...</p>
+    </div>
+
+    <div class="legal-footer">
+        Données sécurisées · Union Européenne · RGPD<br>
+        <a href="politique-confidentialite.html" target="_blank">Politique de confidentialité</a> &nbsp;·&nbsp;
+        <a href="desabonnement.html" target="_blank">Se désabonner</a>
     </div>
 </div>
 
 <script>
+// ════════════════════════════════════════════════════════════════
+//  🍗 SPÉCIFIQUE POULET — réglages en dur (séparés du config.js)
+// ════════════════════════════════════════════════════════════════
+const COL_POULETS = 'poulets_le_cercle';        // colonne compteur poulet
+const POULET_BIENVENUE = 1;                      // 1 poulet offert à l'inscription
+// 🔗 Formulaire Brevo INSCRIPTION poulet (lien dédié, ≠ visites)
+const BREVO_FORM_POULET = 'https://9d65705b.sibforms.com/serve/MUIFANxvasu5Oh1nJI9v0Hw47nxxujfzFWOicTLLxy7KL4UtmEV5W8XDzeX5V_7_pM5js0rE0xqTbPY4wV7Th-QvBOWLMc3w4vTpChXgiLnK_eqc-tFYHsb_4l1z54Hm1Ere0fBJp-s1cyR7rf2YY5-BfEjRd1CPEqja17zxQQ0N669hBxgim9BZeQqBOcFrW4zSXxy0IFFhyXOEpA==';
+
 document.addEventListener('DOMContentLoaded', () => {
-    const config   = appliquerConfig();
-    const form     = document.getElementById('form-inscription');
-    const btn      = document.getElementById('btn-submit');
+    const config = appliquerConfig();
+    const form   = document.getElementById('form-inscription');
+    const btn    = document.getElementById('btn-submit');
     const erreurEl = document.getElementById('form-erreur');
+
+    const TEXTE_BTN = 'Activer ma carte poulet 🍗';
+
+    function afficherErreur(message) {
+        erreurEl.textContent = message;
+        erreurEl.classList.add('show');
+        erreurEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function masquerErreur() {
+        erreurEl.classList.remove('show');
+        erreurEl.textContent = '';
+    }
+    function reactiverBouton() {
+        btn.textContent = TEXTE_BTN;
+        btn.disabled    = false;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // 🧹 NETTOYAGE DES SAISIES — robuste (espaces, emojis, casse…)
+    // ════════════════════════════════════════════════════════════
+    function nettoyerTexte(str) {
+        if (!str) return '';
+        return str
+            .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{1F1E6}-\u{1F1FF}\u{2700}-\u{27BF}]/gu, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+    function capitaliser(str) {
+        return nettoyerTexte(str)
+            .toLowerCase()
+            .replace(/(^|[\s\-'])([a-zà-ÿ])/g, (m, sep, c) => sep + c.toUpperCase());
+    }
+    function nettoyerEmail(str) {
+        if (!str) return '';
+        return str
+            .replace(/\s+/g, '')
+            .replace(/,/g, '.')
+            .replace(/\.{2,}/g, '.')
+            .toLowerCase()
+            .trim();
+    }
+    function emailValide(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    }
+
+    // Formatage SMS
+    const smsInput = document.getElementById('champ-sms');
+    smsInput.addEventListener('input', () => {
+        let val = smsInput.value.replace(/\D/g, '');
+        if (val.startsWith('0'))  val = val.substring(1);
+        if (val.startsWith('33')) val = val.substring(2);
+        smsInput.value = val.substring(0, 9);
+    });
+    smsInput.addEventListener('blur', () => {
+        const val = smsInput.value.replace(/\D/g, '');
+        if (val.length === 9) smsInput.value = val.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+    });
+
+    // Formatage anniversaire
+    const annivInput = document.getElementById('champ-anniversaire');
+    annivInput.addEventListener('input', () => {
+        let val = annivInput.value.replace(/\D/g, '');
+        if (val.length >= 3 && val.length <= 4) val = val.substring(0,2)+'/'+val.substring(2);
+        else if (val.length > 4) val = val.substring(0,2)+'/'+val.substring(2,4)+'/'+val.substring(4,8);
+        annivInput.value = val;
+    });
+
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const COL_POULETS = 'poulets_le_cercle';
-    const TEXTE_BTN   = 'Activer ma carte poulet 🍗';
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        masquerErreur();
+
+        const consentFidelite  = document.getElementById('consent-fidelite').checked;
+        const consentMarketing = document.getElementById('consent-marketing').checked;
+
+        if (!consentFidelite) { afficherErreur('Vous devez accepter la politique de fidélité pour continuer.'); return; }
+
+        // ── Valeurs nettoyées ──
+        const emailVal  = nettoyerEmail(document.getElementById('champ-email').value);
+        const prenomVal = capitaliser(document.getElementById('champ-prenom').value);
+        const nomVal    = capitaliser(document.getElementById('champ-nom').value);
+        const smsRaw    = smsInput.value.replace(/\D/g,'').substring(0,9);
+        const smsVal    = smsRaw ? `+33${smsRaw}` : null;
+        const annivVal  = document.getElementById('champ-anniversaire').value.trim() || null;
+
+        // ── Garde-fous de saisie ──
+        const champEmail = document.getElementById('champ-email');
+        champEmail.classList.remove('champ-erreur');
+        if (!emailValide(emailVal)) {
+            champEmail.classList.add('champ-erreur');
+            afficherErreur('L\'adresse email semble incorrecte. Vérifiez qu\'il n\'y a pas de faute de frappe (ex : gmail.com, pas gmail.con).');
+            return;
+        }
+        if (!prenomVal) {
+            afficherErreur('Veuillez saisir votre prénom.');
+            return;
+        }
+
+        btn.textContent = 'Inscription en cours…';
+        btn.disabled    = true;
+
+        try {
+            // ÉTAPE 1 — Le client existe-t-il déjà ? (ne pas écraser ses poulets)
+            const { data: existant, error: lectureErr } = await _supabase
+                .from('clients')
+                .select(`email, ${COL_POULETS}`)
+                .eq('email', emailVal)
+                .maybeSingle();
+
+            if (lectureErr) throw lectureErr;
+
+            // ÉTAPE 2 — Construire la ligne. Poulet de bienvenue seulement
+            // pour un nouvel inscrit poulet (colonne NULL = pas encore inscrit).
+            const ligne = {
+                email:              emailVal,
+                prenom:             prenomVal,
+                nom:                nomVal,
+                telephone:          smsVal,
+                date_anniversaire:  annivVal,
+                restaurant_origine: config.id,
+                optin_email:        consentMarketing,
+                optin_date:         new Date().toISOString(),
+                optin_source:       'formulaire_poulet'
+            };
+            const dejaInscritPoulet = existant && existant[COL_POULETS] !== null && existant[COL_POULETS] !== undefined;
+            if (!dejaInscritPoulet) {
+                ligne[COL_POULETS] = POULET_BIENVENUE;
+            }
+
+            // ÉTAPE 3 — Écriture
+            const { error: upsertErr } = await _supabase
+                .from('clients')
+                .upsert(ligne, { onConflict: 'email' });
+
+            if (upsertErr) throw upsertErr;
+
+            // ÉTAPE 4 — Relecture de contrôle
+            const { data: verif, error: verifErr } = await _supabase
+                .from('clients')
+                .select('email')
+                .eq('email', emailVal)
+                .maybeSingle();
+
+            if (verifErr) throw verifErr;
+            if (!verif) {
+                throw new Error('La carte n\'a pas pu être confirmée. Veuillez réessayer.');
+            }
+
+            // Valeur de poulets à envoyer à Brevo
+            const pouletsBrevo = dejaInscritPoulet ? existant[COL_POULETS] : POULET_BIENVENUE;
+
+            // Envoi Brevo si opt-in (non bloquant)
+            if (consentMarketing && BREVO_FORM_POULET && BREVO_FORM_POULET !== '#') {
+                soumettreBrevo(BREVO_FORM_POULET, emailVal, prenomVal, nomVal, smsVal, annivVal, consentMarketing, pouletsBrevo);
+            }
+
+            // ✅ Succès CONFIRMÉ
+            document.getElementById('form-state').style.display    = 'none';
+            document.getElementById('success-state').style.display = 'block';
+
+            setTimeout(() => {
+                window.location.href = `carte-poulet.html?email=${encodeURIComponent(emailVal)}&resto=${config.id}`;
+            }, 1200);
+
+        } catch (err) {
+            console.error('Inscription poulet error:', err);
+            let msg = 'Une erreur est survenue lors de l\'inscription. Vérifiez votre connexion et réessayez.';
+            if (err && err.message && /network|fetch|failed/i.test(err.message)) {
+                msg = 'Connexion instable. Vérifiez votre réseau et réessayez.';
+            } else if (err && err.message && /confirm/i.test(err.message)) {
+                msg = err.message;
+            }
+            afficherErreur(msg);
+            reactiverBouton();
+        }
+    });
 
     // ════════════════════════════════════════════════════════════════
-    //  🔗 FORMULAIRE BREVO — POULET (Le Cercle)
-    //  ⚠️ À REMPLACER par l'URL réelle de TON formulaire Brevo poulet
-    //     (Brevo → Formulaires → ton formulaire → URL de partage,
-    //      du type https://xxxxxxxx.sibforms.com/serve/MUIF...).
-    //  Tant que c'est '#', l'envoi Brevo est simplement ignoré
-    //  (l'inscription Supabase fonctionne quand même).
+    //  ENVOI BREVO — structure IDENTIQUE à inscription.html visites.
+    //  Seul ajout par rapport au form de base : le champ POINTS_POULET.
+    //  ⚠️ POINTS_POULET doit exister comme champ du formulaire Brevo,
+    //     sinon Brevo ignore/rejette la soumission.
     // ════════════════════════════════════════════════════════════════
-    const BREVO_FORM_POULET = 'https://9d65705b.sibforms.com/serve/MUIFANxvasu5Oh1nJI9v0Hw47nxxujfzFWOicTLLxy7KL4UtmEV5W8XDzeX5V_7_pM5js0rE0xqTbPY4wV7Th-QvBOWLMc3w4vTpChXgiLnK_eqc-tFYHsb_4l1z54Hm1Ere0fBJp-s1cyR7rf2YY5-BfEjRd1CPEqja17zxQQ0N669hBxgim9BZeQqBOcFrW4zSXxy0IFFhyXOEpA==';
-
-    // Envoi silencieux vers Brevo via iframe cachée — méthode IDENTIQUE
-    // à inscription.html visites (qui fonctionne). Signature positionnelle,
-    // iframe nommée 'brevo_iframe', removeChild à 2000ms.
-    // Seule différence : champ POINTS_POULET au lieu de OPT_IN.
-    function soumettreBrevo(actionUrl, email, prenom, nom, sms, anniversaire, pointsPoulet) {
-        if (!actionUrl || actionUrl === '#') return; // pas configuré
+    function soumettreBrevo(actionUrl, email, prenom, nom, sms, anniversaire, optIn, pointsPoulet) {
         const tmpForm = document.createElement('form');
         tmpForm.method='POST'; tmpForm.action=actionUrl; tmpForm.target='brevo_iframe'; tmpForm.style.display='none';
-        const champs = { 'EMAIL':email,'PRENOM':prenom,'NOM':nom,'SMS':sms||'','DATE_ANNIVERSAIRE':anniversaire||'','POINTS_POULET':(pointsPoulet ?? '').toString(),'email_address_check':'','locale':'fr' };
+        const champs = { 'EMAIL':email,'PRENOM':prenom,'NOM':nom,'SMS':sms||'','DATE_ANNIVERSAIRE':anniversaire||'','OPT_IN':optIn?'true':'false','POINTS_POULET':(pointsPoulet ?? '').toString(),'email_address_check':'','locale':'fr' };
         Object.entries(champs).forEach(([name,value]) => {
             const input = document.createElement('input');
             input.type='hidden'; input.name=name; input.value=value||'';
@@ -153,148 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tmpForm.submit();
         setTimeout(() => document.body.removeChild(tmpForm), 2000);
     }
-
-    function afficherErreur(msg) {
-        erreurEl.textContent = msg;
-        erreurEl.classList.add('show');
-        erreurEl.scrollIntoView({ behavior:'smooth', block:'center' });
-    }
-    function masquerErreur() { erreurEl.classList.remove('show'); erreurEl.textContent = ''; }
-    function reactiverBouton() { btn.textContent = TEXTE_BTN; btn.disabled = false; }
-
-    // ── Nettoyage saisies (repris de inscription.html) ──
-    function nettoyerTexte(str){ if(!str) return ''; return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{1F1E6}-\u{1F1FF}]/gu,'').replace(/\s+/g,' ').trim(); }
-    function capitaliser(str){ return nettoyerTexte(str).toLowerCase().replace(/(^|[\s\-'])([a-zà-ÿ])/g,(m,sep,c)=>sep+c.toUpperCase()); }
-    function nettoyerEmail(str){ if(!str) return ''; return str.replace(/\s+/g,'').replace(/,/g,'.').replace(/\.{2,}/g,'.').toLowerCase().trim(); }
-    function emailValide(email){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email); }
-
-    // Formatage SMS
-    const smsInput = document.getElementById('champ-sms');
-    smsInput.addEventListener('input', () => {
-        let val = smsInput.value.replace(/\D/g,'');
-        if (val.startsWith('0'))  val = val.substring(1);
-        if (val.startsWith('33')) val = val.substring(2);
-        smsInput.value = val.substring(0,9);
-    });
-    smsInput.addEventListener('blur', () => {
-        const val = smsInput.value.replace(/\D/g,'');
-        if (val.length === 9) smsInput.value = val.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
-    });
-    // Formatage anniversaire
-    const annivInput = document.getElementById('champ-anniversaire');
-    annivInput.addEventListener('input', () => {
-        let val = annivInput.value.replace(/\D/g,'');
-        if (val.length>=3 && val.length<=4) val = val.substring(0,2)+'/'+val.substring(2);
-        else if (val.length>4) val = val.substring(0,2)+'/'+val.substring(2,4)+'/'+val.substring(4,8);
-        annivInput.value = val;
-    });
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        masquerErreur();
-
-        if (!document.getElementById('consent-fidelite').checked) {
-            afficherErreur('Vous devez accepter pour activer votre carte poulet.');
-            return;
-        }
-
-        const emailVal  = nettoyerEmail(document.getElementById('champ-email').value);
-        const prenomVal = capitaliser(document.getElementById('champ-prenom').value);
-        const nomVal    = capitaliser(document.getElementById('champ-nom').value);
-        const smsRaw    = smsInput.value.replace(/\D/g,'').substring(0,9);
-        const smsVal    = smsRaw ? `+33${smsRaw}` : null;
-        const annivVal  = document.getElementById('champ-anniversaire').value.trim() || null;
-
-        const champEmail = document.getElementById('champ-email');
-        champEmail.classList.remove('champ-erreur');
-        if (!emailValide(emailVal)) {
-            champEmail.classList.add('champ-erreur');
-            afficherErreur('L\'adresse email semble incorrecte. Vérifiez la saisie (ex : gmail.com, pas gmail.con).');
-            return;
-        }
-        if (!prenomVal) { afficherErreur('Veuillez saisir votre prénom.'); return; }
-
-        btn.textContent = 'Inscription en cours…';
-        btn.disabled = true;
-
-        try {
-            // ── ÉTAPE 1 — Le client existe-t-il déjà ? ──
-            // On lit sa colonne poulet pour ne PAS la réinitialiser s'il
-            // est déjà inscrit poulet (et ne pas toucher à ses points visites).
-            const { data: existant, error: lectureErr } = await _supabase
-                .from('clients')
-                .select(`email, ${COL_POULETS}`)
-                .eq('email', emailVal)
-                .maybeSingle();
-            if (lectureErr) throw lectureErr;
-
-            // ── ÉTAPE 2 — Construire la ligne ──
-            const ligne = {
-                email:             emailVal,
-                prenom:            prenomVal,
-                nom:               nomVal,
-                telephone:         smsVal,
-                date_anniversaire: annivVal,
-                optin_email:       true,
-                optin_date:        new Date().toISOString(),
-                optin_source:      'formulaire_poulet'
-            };
-            // On (re)met restaurant_origine seulement pour un nouveau client,
-            // pour ne pas écraser l'origine d'un client déjà existant.
-            if (!existant) {
-                ligne.restaurant_origine = 'le_cercle_poulet';
-            }
-            // On initialise le compteur poulet à 0 UNIQUEMENT si le client
-            // n'est pas déjà inscrit au poulet (poulet NULL = pas inscrit).
-            // Un inscrit poulet existant garde son compteur intact.
-            if (!existant || existant[COL_POULETS] === null || existant[COL_POULETS] === undefined) {
-                ligne[COL_POULETS] = 1;   // inscrit poulet + 1 poulet de bienvenue
-            }
-
-            // ── ÉTAPE 3 — Écriture avec lecture de l'erreur ──
-            const { error: upsertErr } = await _supabase
-                .from('clients')
-                .upsert(ligne, { onConflict: 'email' });
-            if (upsertErr) throw upsertErr;
-
-            // ── ÉTAPE 4 — Relecture de contrôle ──
-            const { data: verif, error: verifErr } = await _supabase
-                .from('clients')
-                .select('email')
-                .eq('email', emailVal)
-                .maybeSingle();
-            if (verifErr) throw verifErr;
-            if (!verif) throw new Error('La carte n\'a pas pu être confirmée. Veuillez réessayer.');
-
-            // ✅ Succès confirmé
-            // Envoi Brevo (silencieux, non bloquant) avec le nb de poulets réel.
-            // Si le client était déjà inscrit poulet, on envoie sa valeur existante ;
-            // sinon, le poulet de bienvenue (1).
-            const pouletsBrevo = (ligne[COL_POULETS] !== undefined)
-                ? ligne[COL_POULETS]
-                : (existant ? existant[COL_POULETS] : 1);
-            if (BREVO_FORM_POULET && BREVO_FORM_POULET !== '#') {
-                soumettreBrevo(BREVO_FORM_POULET, emailVal, prenomVal, nomVal, smsVal, annivVal, pouletsBrevo);
-            }
-
-            document.getElementById('form-state').style.display    = 'none';
-            document.getElementById('success-state').style.display = 'block';
-            setTimeout(() => {
-                window.location.href = `carte-poulet.html?email=${encodeURIComponent(emailVal)}&resto=${config.id}`;
-            }, 1200);
-
-        } catch (err) {
-            console.error('Inscription poulet error:', err);
-            let msg = 'Une erreur est survenue. Vérifiez votre connexion et réessayez.';
-            if (err && err.message && /network|fetch|failed/i.test(err.message)) {
-                msg = 'Connexion instable. Vérifiez votre réseau et réessayez.';
-            } else if (err && err.message && /confirm/i.test(err.message)) {
-                msg = err.message;
-            }
-            afficherErreur(msg);
-            reactiverBouton();
-        }
-    });
 });
 </script>
 </body>
