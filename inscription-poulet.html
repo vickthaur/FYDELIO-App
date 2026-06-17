@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Carte Poulet | FYDELIO</title>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#C2410C; --primary-glow:rgba(194,65,12,0.12); --success-color:#10b981; --bg-color:#1A0F0A; --input-bg:rgba(255,255,255,0.05); }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Plus Jakarta Sans',sans-serif;background-color:var(--bg-color);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;color:white;padding:24px 16px 40px;background-image:radial-gradient(circle at top center,var(--primary-glow) 0%,transparent 55%);}
+        .card{background:rgba(255,255,255,0.04);width:100%;max-width:460px;border-radius:28px;padding:36px 30px;box-shadow:0 20px 48px -12px rgba(0,0,0,0.5);text-align:center;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(10px);}
+        .brand-badge{font-size:10px;font-weight:800;color:var(--primary);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+        .logo-placeholder{font-size:52px;margin-bottom:12px;display:block;}
+        .restaurant-tag{font-size:11px;text-transform:uppercase;letter-spacing:3px;color:rgba(255,255,255,0.5);font-weight:800;margin-bottom:8px;}
+        h1{font-size:26px;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;}
+        .subtitle{font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:26px;line-height:1.6;}
+        .subtitle strong{color:var(--primary);font-weight:800;}
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+        .full-width{grid-column:span 2;}
+        .form-group{text-align:left;}
+        .form-group label{display:block;font-size:10px;font-weight:800;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+        .required-star{color:var(--primary);}
+        .form-group input{width:100%;padding:14px 16px;border:2px solid transparent;border-radius:14px;font-size:15px;font-weight:500;background-color:var(--input-bg);color:white;transition:all 0.25s ease;font-family:inherit;}
+        .form-group input:focus{outline:none;background-color:rgba(255,255,255,0.08);border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
+        .form-group input::placeholder{color:rgba(255,255,255,0.3);}
+        .form-group input.champ-erreur{border-color:#ef4444;background-color:rgba(239,68,68,0.1);}
+        .sms-wrapper{display:flex;border:2px solid transparent;border-radius:14px;background-color:var(--input-bg);overflow:hidden;transition:all 0.25s ease;}
+        .sms-wrapper:focus-within{background-color:rgba(255,255,255,0.08);border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow);}
+        .sms-prefix{display:flex;align-items:center;gap:6px;padding:14px 12px;font-size:14px;font-weight:700;color:rgba(255,255,255,0.7);border-right:1px solid rgba(255,255,255,0.1);white-space:nowrap;flex-shrink:0;}
+        .sms-input{flex:1;padding:14px 16px 14px 12px;border:none!important;border-radius:0!important;background:transparent!important;font-size:15px;font-weight:500;color:white;outline:none;font-family:inherit;}
+        .sms-input::placeholder{color:rgba(255,255,255,0.3);}
+        .consent-block{background:rgba(194,65,12,0.08);border:1px solid rgba(194,65,12,0.25);border-radius:16px;padding:16px 18px;margin-bottom:18px;text-align:left;}
+        .consent-row{display:flex;align-items:flex-start;gap:12px;}
+        .custom-checkbox{position:relative;flex-shrink:0;margin-top:1px;}
+        .custom-checkbox input[type="checkbox"]{position:absolute;opacity:0;width:22px;height:22px;cursor:pointer;z-index:1;margin:0;}
+        .custom-checkbox .box{width:22px;height:22px;border:2px solid rgba(255,255,255,0.3);border-radius:7px;background:transparent;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;}
+        .custom-checkbox input:checked+.box{background:var(--primary);border-color:var(--primary);}
+        .custom-checkbox input:checked+.box::after{content:'✓';color:white;font-weight:800;font-size:13px;}
+        .consent-text{font-size:12.5px;color:rgba(255,255,255,0.75);line-height:1.55;font-weight:500;}
+        .btn-submit{width:100%;background:var(--primary);color:white;border:none;padding:18px;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;transition:all 0.3s ease;box-shadow:0 8px 20px -5px rgba(194,65,12,0.4);font-family:inherit;}
+        .btn-submit:hover:not(:disabled){transform:translateY(-3px);}
+        .btn-submit:disabled{background:#555;cursor:not-allowed;transform:none;box-shadow:none;}
+        .form-erreur{display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:16px;text-align:left;line-height:1.5;}
+        .form-erreur.show{display:block;}
+        #success-state{display:none;padding:16px 0;}
+        .success-icon{font-size:64px;margin-bottom:16px;}
+        @media(max-width:400px){.card{padding:28px 18px;}.form-grid{grid-template-columns:1fr;}.full-width{grid-column:span 1;}}
+    </style>
+</head>
+<body>
+<div class="card">
+    <div id="form-state">
+        <div class="brand-badge">🍗 Carte Poulet FYDELIO</div>
+        <div class="logo-placeholder">🍗</div>
+        <div class="restaurant-tag nom-resto">Le Cercle</div>
+        <h1>Carte Poulet</h1>
+        <p class="subtitle">Inscrivez-vous et collectez vos poulets.<br><strong>10 poulets achetés = 1 poulet offert !</strong></p>
+
+        <div class="form-erreur" id="form-erreur"></div>
+
+        <form id="form-inscription">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Prénom <span class="required-star">*</span></label>
+                    <input type="text" id="champ-prenom" placeholder="Jean" required autocomplete="given-name" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" id="champ-nom" placeholder="Dupont" autocomplete="family-name" maxlength="50">
+                </div>
+                <div class="form-group full-width">
+                    <label>Email <span class="required-star">*</span></label>
+                    <input type="email" id="champ-email" placeholder="jean@example.com" required autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false">
+                </div>
+                <div class="form-group full-width">
+                    <label>Mobile <span class="required-star">*</span></label>
+                    <div class="sms-wrapper">
+                        <div class="sms-prefix"><span>🇫🇷</span><span>+33</span></div>
+                        <input type="tel" id="champ-sms" class="sms-input" placeholder="6 00 00 00 00" required autocomplete="tel-national" maxlength="15" inputmode="numeric">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label>Date d'anniversaire</label>
+                    <input type="text" id="champ-anniversaire" placeholder="JJ/MM/AAAA" maxlength="10" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="consent-block">
+                <div class="consent-row">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="consent-fidelite" required>
+                        <div class="box"></div>
+                    </div>
+                    <p class="consent-text">J'accepte que mes données soient utilisées pour la carte de fidélité poulet du Cercle.</p>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-submit">Activer ma carte poulet 🍗</button>
+        </form>
+    </div>
+
+    <div id="success-state">
+        <div class="success-icon">🍗</div>
+        <h2 style="font-size:24px;font-weight:800;color:var(--success-color);margin-bottom:10px;">C'est validé !</h2>
+        <p class="subtitle">Votre carte poulet est activée.<br>Redirection en cours...</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const config   = appliquerConfig();
+    const form     = document.getElementById('form-inscription');
+    const btn      = document.getElementById('btn-submit');
+    const erreurEl = document.getElementById('form-erreur');
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const COL_POULETS = 'poulets_le_cercle';
+    const TEXTE_BTN   = 'Activer ma carte poulet 🍗';
+
+    function afficherErreur(msg) {
+        erreurEl.textContent = msg;
+        erreurEl.classList.add('show');
+        erreurEl.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+    function masquerErreur() { erreurEl.classList.remove('show'); erreurEl.textContent = ''; }
+    function reactiverBouton() { btn.textContent = TEXTE_BTN; btn.disabled = false; }
+
+    // ── Nettoyage saisies (repris de inscription.html) ──
+    function nettoyerTexte(str){ if(!str) return ''; return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{1F1E6}-\u{1F1FF}]/gu,'').replace(/\s+/g,' ').trim(); }
+    function capitaliser(str){ return nettoyerTexte(str).toLowerCase().replace(/(^|[\s\-'])([a-zà-ÿ])/g,(m,sep,c)=>sep+c.toUpperCase()); }
+    function nettoyerEmail(str){ if(!str) return ''; return str.replace(/\s+/g,'').replace(/,/g,'.').replace(/\.{2,}/g,'.').toLowerCase().trim(); }
+    function emailValide(email){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email); }
+
+    // Formatage SMS
+    const smsInput = document.getElementById('champ-sms');
+    smsInput.addEventListener('input', () => {
+        let val = smsInput.value.replace(/\D/g,'');
+        if (val.startsWith('0'))  val = val.substring(1);
+        if (val.startsWith('33')) val = val.substring(2);
+        smsInput.value = val.substring(0,9);
+    });
+    smsInput.addEventListener('blur', () => {
+        const val = smsInput.value.replace(/\D/g,'');
+        if (val.length === 9) smsInput.value = val.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+    });
+    // Formatage anniversaire
+    const annivInput = document.getElementById('champ-anniversaire');
+    annivInput.addEventListener('input', () => {
+        let val = annivInput.value.replace(/\D/g,'');
+        if (val.length>=3 && val.length<=4) val = val.substring(0,2)+'/'+val.substring(2);
+        else if (val.length>4) val = val.substring(0,2)+'/'+val.substring(2,4)+'/'+val.substring(4,8);
+        annivInput.value = val;
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        masquerErreur();
+
+        if (!document.getElementById('consent-fidelite').checked) {
+            afficherErreur('Vous devez accepter pour activer votre carte poulet.');
+            return;
+        }
+
+        const emailVal  = nettoyerEmail(document.getElementById('champ-email').value);
+        const prenomVal = capitaliser(document.getElementById('champ-prenom').value);
+        const nomVal    = capitaliser(document.getElementById('champ-nom').value);
+        const smsRaw    = smsInput.value.replace(/\D/g,'').substring(0,9);
+        const smsVal    = smsRaw ? `+33${smsRaw}` : null;
+        const annivVal  = document.getElementById('champ-anniversaire').value.trim() || null;
+
+        const champEmail = document.getElementById('champ-email');
+        champEmail.classList.remove('champ-erreur');
+        if (!emailValide(emailVal)) {
+            champEmail.classList.add('champ-erreur');
+            afficherErreur('L\'adresse email semble incorrecte. Vérifiez la saisie (ex : gmail.com, pas gmail.con).');
+            return;
+        }
+        if (!prenomVal) { afficherErreur('Veuillez saisir votre prénom.'); return; }
+
+        btn.textContent = 'Inscription en cours…';
+        btn.disabled = true;
+
+        try {
+            // ── ÉTAPE 1 — Le client existe-t-il déjà ? ──
+            // On lit sa colonne poulet pour ne PAS la réinitialiser s'il
+            // est déjà inscrit poulet (et ne pas toucher à ses points visites).
+            const { data: existant, error: lectureErr } = await _supabase
+                .from('clients')
+                .select(`email, ${COL_POULETS}`)
+                .eq('email', emailVal)
+                .maybeSingle();
+            if (lectureErr) throw lectureErr;
+
+            // ── ÉTAPE 2 — Construire la ligne ──
+            const ligne = {
+                email:             emailVal,
+                prenom:            prenomVal,
+                nom:               nomVal,
+                telephone:         smsVal,
+                date_anniversaire: annivVal,
+                optin_email:       true,
+                optin_date:        new Date().toISOString(),
+                optin_source:      'formulaire_poulet'
+            };
+            // On (re)met restaurant_origine seulement pour un nouveau client,
+            // pour ne pas écraser l'origine d'un client déjà existant.
+            if (!existant) {
+                ligne.restaurant_origine = 'le_cercle_poulet';
+            }
+            // On initialise le compteur poulet à 0 UNIQUEMENT si le client
+            // n'est pas déjà inscrit au poulet (poulet NULL = pas inscrit).
+            // Un inscrit poulet existant garde son compteur intact.
+            if (!existant || existant[COL_POULETS] === null || existant[COL_POULETS] === undefined) {
+                ligne[COL_POULETS] = 0;   // inscrit poulet, 0 poulet acheté
+            }
+
+            // ── ÉTAPE 3 — Écriture avec lecture de l'erreur ──
+            const { error: upsertErr } = await _supabase
+                .from('clients')
+                .upsert(ligne, { onConflict: 'email' });
+            if (upsertErr) throw upsertErr;
+
+            // ── ÉTAPE 4 — Relecture de contrôle ──
+            const { data: verif, error: verifErr } = await _supabase
+                .from('clients')
+                .select('email')
+                .eq('email', emailVal)
+                .maybeSingle();
+            if (verifErr) throw verifErr;
+            if (!verif) throw new Error('La carte n\'a pas pu être confirmée. Veuillez réessayer.');
+
+            // ✅ Succès confirmé
+            document.getElementById('form-state').style.display    = 'none';
+            document.getElementById('success-state').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = `carte-poulet.html?email=${encodeURIComponent(emailVal)}&resto=${config.id}`;
+            }, 1200);
+
+        } catch (err) {
+            console.error('Inscription poulet error:', err);
+            let msg = 'Une erreur est survenue. Vérifiez votre connexion et réessayez.';
+            if (err && err.message && /network|fetch|failed/i.test(err.message)) {
+                msg = 'Connexion instable. Vérifiez votre réseau et réessayez.';
+            } else if (err && err.message && /confirm/i.test(err.message)) {
+                msg = err.message;
+            }
+            afficherErreur(msg);
+            reactiverBouton();
+        }
+    });
+});
+</script>
+</body>
+</html>
