@@ -120,6 +120,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const COL_POULETS = 'poulets_le_cercle';
     const TEXTE_BTN   = 'Activer ma carte poulet 🍗';
 
+    // ════════════════════════════════════════════════════════════════
+    //  🔗 FORMULAIRE BREVO — POULET (Le Cercle)
+    //  ⚠️ À REMPLACER par l'URL réelle de TON formulaire Brevo poulet
+    //     (Brevo → Formulaires → ton formulaire → URL de partage,
+    //      du type https://xxxxxxxx.sibforms.com/serve/MUIF...).
+    //  Tant que c'est '#', l'envoi Brevo est simplement ignoré
+    //  (l'inscription Supabase fonctionne quand même).
+    // ════════════════════════════════════════════════════════════════
+    const BREVO_FORM_POULET = 'https://9d65705b.sibforms.com/serve/MUIFANxvasu5Oh1nJI9v0Hw47nxxujfzFWOicTLLxy7KL4UtmEV5W8XDzeX5V_7_pM5js0rE0xqTbPY4wV7Th-QvBOWLMc3w4vTpChXgiLnK_eqc-tFYHsb_4l1z54Hm1Ere0fBJp-s1cyR7rf2YY5-BfEjRd1CPEqja17zxQQ0N669hBxgim9BZeQqBOcFrW4zSXxy0IFFhyXOEpA==';
+
+    // Envoi silencieux vers Brevo via iframe cachée (méthode identique
+    // à inscription.html visites). N'empêche jamais l'inscription :
+    // si Brevo échoue ou n'est pas configuré, on continue.
+    function soumettreBrevo({ email, prenom, nom, smsRaw, anniv, pointsPoulet }) {
+        try {
+            if (!BREVO_FORM_POULET || BREVO_FORM_POULET === '#') return; // pas configuré
+
+            // iframe cachée pour ne pas quitter la page
+            let iframe = document.getElementById('brevo-iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'brevo-iframe';
+                iframe.name = 'brevo-iframe';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+            }
+
+            // formulaire cible Brevo
+            const f = document.createElement('form');
+            f.action = BREVO_FORM_POULET;
+            f.method = 'POST';
+            f.target = 'brevo-iframe';
+            f.style.display = 'none';
+
+            // Champs Brevo standard (mêmes noms que le formulaire visites)
+            const champs = {
+                EMAIL:             email,
+                PRENOM:            prenom || '',
+                NOM:               nom || '',
+                SMS:               smsRaw ? `+33${smsRaw}` : '',
+                DATE_ANNIVERSAIRE: anniv || '',
+                POINTS_POULET:     (pointsPoulet ?? '').toString()
+            };
+            Object.entries(champs).forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                f.appendChild(input);
+            });
+
+            document.body.appendChild(f);
+            f.submit();
+            setTimeout(() => f.remove(), 1500);
+        } catch (e) {
+            console.warn('Brevo poulet (non bloquant) :', e);
+        }
+    }
+
     function afficherErreur(msg) {
         erreurEl.textContent = msg;
         erreurEl.classList.add('show');
@@ -210,10 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!existant) {
                 ligne.restaurant_origine = 'le_cercle_poulet';
             }
-            // On initialise le compteur poulet à 1 (poulet de bienvenue)
-            // UNIQUEMENT si le client n'est pas déjà inscrit au poulet
-            // (poulet NULL = pas inscrit). Un inscrit poulet existant
-            // garde son compteur intact (on ne réoffre pas le bienvenue).
+            // On initialise le compteur poulet à 0 UNIQUEMENT si le client
+            // n'est pas déjà inscrit au poulet (poulet NULL = pas inscrit).
+            // Un inscrit poulet existant garde son compteur intact.
             if (!existant || existant[COL_POULETS] === null || existant[COL_POULETS] === undefined) {
                 ligne[COL_POULETS] = 1;   // inscrit poulet + 1 poulet de bienvenue
             }
@@ -234,6 +292,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!verif) throw new Error('La carte n\'a pas pu être confirmée. Veuillez réessayer.');
 
             // ✅ Succès confirmé
+            // Envoi Brevo (silencieux, non bloquant) avec le nb de poulets réel.
+            // Si le client était déjà inscrit poulet, on envoie sa valeur existante ;
+            // sinon, le poulet de bienvenue (1).
+            const pouletsBrevo = (ligne[COL_POULETS] !== undefined)
+                ? ligne[COL_POULETS]
+                : (existant ? existant[COL_POULETS] : 1);
+            soumettreBrevo({
+                email:        emailVal,
+                prenom:       prenomVal,
+                nom:          nomVal,
+                smsRaw:       smsRaw,
+                anniv:        annivVal,
+                pointsPoulet: pouletsBrevo
+            });
+
             document.getElementById('form-state').style.display    = 'none';
             document.getElementById('success-state').style.display = 'block';
             setTimeout(() => {
