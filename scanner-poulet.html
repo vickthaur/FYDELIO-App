@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Poulet | FYDELIO</title>
-
+ 
     <script src="config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-
+    <script src=https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2></script>
+    <script src=https://unpkg.com/html5-qrcode type="text/javascript"></script>
+    <link href=https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap rel="stylesheet">
+ 
     <style>
         :root {
             --primary: #C2410C;            /* orange rôtisserie */
@@ -28,11 +28,15 @@
             background-image: radial-gradient(circle at top center, var(--primary-glow) 0%, transparent 70%);
         }
         .scanner-wrapper { width: 100%; height: 100vh; display: flex; flex-direction: column; position: relative; }
-        .header { padding: 24px 20px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08); z-index: 10; }
+        .header { padding: 24px 20px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08); z-index: 10; position: relative; }
         .brand-tag { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; opacity: 0.9; }
         .logo-resto { font-size: 13px; text-transform: uppercase; letter-spacing: 4px; color: white; font-weight: 800; margin-bottom: 6px; }
         .title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
 
+        /* ── AJOUT : bouton retour vers le scanner visites ── */
+        .btn-retour { position: absolute; top: 22px; left: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 9px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; z-index: 20; }
+        .btn-retour:active { transform: scale(0.95); }
+ 
         /* Sélecteur de quantité */
         .qty-bar { padding: 18px 20px; background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.08); z-index: 10; }
         .qty-label { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
@@ -41,13 +45,13 @@
         .qty-btn:active { transform: scale(0.92); }
         .qty-value { font-size: 46px; font-weight: 800; min-width: 70px; color: white; }
         .qty-hint { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 10px; font-weight: 600; }
-
+ 
         .camera-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; position: relative; overflow: hidden; }
         #reader { width: 100%; height: 100%; border-radius: 0 !important; overflow: hidden; border: none !important; background: black; }
         #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 0 !important; }
-
+ 
         .btn-start-camera { background: var(--primary); color: white; border: none; padding: 16px 32px; border-radius: 14px; font-weight: 800; font-size: 15px; font-family: inherit; cursor: pointer; display: none; }
-
+ 
         .validation-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(5px); }
         .validation-overlay.show { display: flex; }
         .validation-content { text-align: center; animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1); position: relative; z-index: 2; padding: 20px; }
@@ -64,7 +68,7 @@
         .validation-overlay.error .validation-overlay-bg { background: linear-gradient(135deg, rgba(239,68,68,0.3), rgba(220,38,38,0.2)); }
         .validation-overlay.warning .validation-overlay-bg { background: linear-gradient(135deg, rgba(249,115,22,0.3), rgba(234,88,12,0.2)); }
         .validation-overlay-bg { position: fixed; inset: 0; transition: background 0.3s ease; z-index: 1; }
-
+ 
         .footer { padding: 16px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.08); font-size: 10px; color: #7c5c4c; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .loading-indicator { position: fixed; top: 24px; right: 24px; width: 38px; height: 38px; border: 2px solid rgba(255,255,255,0.2); border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; display: none; z-index: 50; }
         .loading-indicator.active { display: block; }
@@ -74,11 +78,12 @@
 <body>
     <div class="scanner-wrapper">
         <div class="header">
+            <a class="btn-retour" id="btnRetour" href="#">← Visites</a>
             <div class="brand-tag">🍗 Carte Poulet FYDELIO</div>
             <div class="logo-resto nom-resto">Chargement...</div>
             <div class="title">Scanner Poulet</div>
         </div>
-
+ 
         <!-- Sélecteur de quantité AVANT le scan -->
         <div class="qty-bar">
             <div class="qty-label">Nombre de poulets achetés</div>
@@ -89,17 +94,17 @@
             </div>
             <div class="qty-hint">Réglez la quantité, puis scannez la carte du client</div>
         </div>
-
+ 
         <div class="camera-container">
             <div id="reader"></div>
             <button class="btn-start-camera" id="btnStartCamera">📷 Activer la caméra</button>
         </div>
-
+ 
         <div class="footer">
             Système Sécurisé FYDELIO • Carnet de 10 poulets
         </div>
     </div>
-
+ 
     <div class="validation-overlay" id="validationOverlay">
         <div class="validation-overlay-bg"></div>
         <div class="validation-content">
@@ -111,14 +116,14 @@
             <div class="validation-score-label" id="validationScoreLabel" style="display:none;">poulets sur 10</div>
         </div>
     </div>
-
+ 
     <div class="loading-indicator" id="loadingIndicator"></div>
-
+ 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const config    = appliquerConfig();
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+ 
         // ════════════════════════════════════════════════════════════
         //  COLONNES POULET — dédiées, séparées de la fidélité visites.
         //  Ces colonnes doivent exister dans la table `clients` :
@@ -129,7 +134,7 @@
         const COL_RECOMPENSE = 'poulets_recompenses_le_cercle';
         const COL_LAST       = 'last_poulet_le_cercle';
         const SEUIL_POULET   = 10;   // carnet de 10
-
+ 
         // ════════════════════════════════════════════════════════════
         //  🔗 FORMULAIRE BREVO — SCAN POULET (Le Cercle)
         //  Form "scan" : met à jour l'attribut POINTS_POULET du contact
@@ -137,7 +142,7 @@
         //  Si '#', l'envoi est ignoré (le scan Supabase marche quand même).
         // ════════════════════════════════════════════════════════════
         const BREVO_FORM_SCAN_POULET = 'https://9d65705b.sibforms.com/serve/MUIFAEVDrMIsH4UMTnF2lg_WiBy-EsExQMWUo1dkYCPPMeoQObLud32pMblBmhP2oL9bl6Ka2gnT2gFeLZzbyryejj0hzHriwhMOa6sbA-AvUpdwYWcoarROIoPZqCfqZyBvMLS2nM4xKK5rqM8YpG2vW65Vl6M5XhImaiMz2oIiFThb84fZTVyZ5tiOG0KDxK1McPZS9enDfUhO5g==';
-
+ 
         // Envoi silencieux vers Brevo via iframe cachée — méthode IDENTIQUE
         // à inscription.html visites (qui fonctionne). Signature positionnelle,
         // iframe 'brevo_iframe', removeChild à 2000ms. Champ POINTS_POULET.
@@ -160,12 +165,12 @@
             tmpForm.submit();
             setTimeout(() => document.body.removeChild(tmpForm), 2000);
         }
-
+ 
         // État
         let scanVerrouille = false;
         let quantite = 1;
         let html5Qrcode = null;
-
+ 
         // UI
         const validationOverlay = document.getElementById('validationOverlay');
         const validationIcon    = document.getElementById('validationIcon');
@@ -178,9 +183,12 @@
         const nomRestoEl         = document.querySelector('.nom-resto');
         const btnStartCamera     = document.getElementById('btnStartCamera');
         const qtyValue           = document.getElementById('qtyValue');
-
+ 
         nomRestoEl.innerText = config.nom || 'Le Cercle';
 
+        // ── AJOUT : bouton retour vers le scanner visites ──
+        document.getElementById('btnRetour').href = 'scanner.html?resto=' + config.id;
+ 
         // ── Sélecteur de quantité ──
         document.getElementById('qtyMoins').addEventListener('click', () => {
             if (quantite > 1) { quantite--; qtyValue.innerText = quantite; }
@@ -188,7 +196,7 @@
         document.getElementById('qtyPlus').addEventListener('click', () => {
             if (quantite < 50) { quantite++; qtyValue.innerText = quantite; }
         });
-
+ 
         function showValidation(type, icon, title, text, score = null, prenom = null) {
             validationIcon.innerText  = icon;
             validationTitle.innerText = title;
@@ -206,7 +214,7 @@
             }
             validationOverlay.classList.add('show');
         }
-
+ 
         function hideValidation() {
             setTimeout(() => {
                 validationOverlay.classList.remove('show');
@@ -215,31 +223,31 @@
                 quantite = 1; qtyValue.innerText = quantite;
             }, 2600);
         }
-
+ 
         // ── Traitement du scan ──
         async function traiterScan(email) {
             if (scanVerrouille) return;
             scanVerrouille = true;
             loadingIndicator.classList.add('active');
-
+ 
             const emailNormalise = email.toLowerCase().trim();
             const qteAjoutee = quantite;   // figé au moment du scan
-
+ 
             try {
                 const { data: client, error: fetchError } = await _supabase
                     .from('clients')
                     .select(`prenom, nom, email, telephone, date_anniversaire, ${COL_POULETS}, ${COL_RECOMPENSE}, ${COL_LAST}`)
                     .eq('email', emailNormalise)
                     .maybeSingle();
-
+ 
                 if (fetchError) throw fetchError;
-
+ 
                 if (!client) {
                     showValidation('error', '❌', 'Inconnu', 'Cette carte n\'est pas enregistrée.');
                     loadingIndicator.classList.remove('active');
                     return hideValidation();
                 }
-
+ 
                 // ════════════════════════════════════════════════════
                 //  LOGIQUE CARNET POULET (carnet de 10)
                 //
@@ -260,7 +268,7 @@
                 let nouveauScore;
                 let estCadeau = false;
                 let surplus = 0;
-
+ 
                 if (scoreActuel >= SEUIL_POULET) {
                     // Carte déjà pleine → ce passage offre le poulet et repart
                     estCadeau = true;
@@ -279,7 +287,7 @@
                     }
                     // NB : atteindre 10 = carte pleine, mais l'offre se fait au PROCHAIN passage
                 }
-
+ 
                 const updateData = {
                     [COL_POULETS]: nouveauScore,
                     [COL_LAST]:    new Date().toISOString()
@@ -287,14 +295,14 @@
                 if (estCadeau) {
                     updateData[COL_RECOMPENSE] = (client[COL_RECOMPENSE] || 0) + 1;
                 }
-
+ 
                 const { error: updateError } = await _supabase
                     .from('clients')
                     .update(updateData)
                     .eq('email', emailNormalise);
-
+ 
                 if (updateError) throw updateError;
-
+ 
                 // Historique (réutilise historique_scans, marqué poulet via restaurant_id)
                 await _supabase.from('historique_scans').insert({
                     client_email:  emailNormalise,
@@ -303,7 +311,7 @@
                     points_apres:  nouveauScore,
                     est_cadeau:    estCadeau
                 });
-
+ 
                 // ── Envoi Brevo (form scan), silencieux et non bloquant ──
                 // Met à jour l'attribut POINTS_POULET du contact dans Brevo.
                 soumettreBrevo(
@@ -315,7 +323,7 @@
                     client.date_anniversaire || '',
                     nouveauScore
                 );
-
+ 
                 // Affichage
                 if (estCadeau) {
                     showValidation('reward', '🍗', 'POULET OFFERT !',
@@ -330,10 +338,10 @@
                         `+${qteAjoutee} poulet${qteAjoutee>1?'s':''} pour ${client.prenom || 'ce client'}.`,
                         nouveauScore, client.prenom);
                 }
-
+ 
                 loadingIndicator.classList.remove('active');
                 hideValidation();
-
+ 
             } catch (err) {
                 console.error('FYDELIO poulet error:', err);
                 showValidation('error', '⚠️', 'Erreur', 'Impossible de joindre la base.');
@@ -341,11 +349,11 @@
                 hideValidation();
             }
         }
-
+ 
         // ── Caméra (même cascade que scanner.html) ──
         function onScanSuccess(decodedText) { traiterScan(decodedText); }
         const scanConfig = { fps: 30, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0, useBarCodeDetectorIfAvailable: true };
-
+ 
         async function demarrerCamera() {
             btnStartCamera.style.display = 'none';
             if (!html5Qrcode) html5Qrcode = new Html5Qrcode("reader", { verbose: false });
@@ -368,7 +376,7 @@
                 }
             }
         }
-
+ 
         demarrerCamera().catch(() => { btnStartCamera.style.display = 'inline-block'; });
         btnStartCamera.addEventListener('click', demarrerCamera);
     });
