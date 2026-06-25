@@ -73,7 +73,7 @@
         .qty-value { font-size: 46px; font-weight: 800; min-width: 70px; color: white; }
         .qty-hint { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 10px; font-weight: 600; }
  
-        .camera-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; position: relative; overflow: hidden; }
+        .camera-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; position: relative; overflow: hidden; min-height: 240px; }
         #reader { width: 100%; height: 100%; border-radius: 0 !important; overflow: hidden; border: none !important; background: black; }
         #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 0 !important; }
  
@@ -156,28 +156,13 @@
         const config    = appliquerConfig();
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
  
-        // ════════════════════════════════════════════════════════════
-        //  COLONNES POULET — dédiées, séparées de la fidélité visites.
-        //  Ces colonnes doivent exister dans la table `clients` :
-        //    poulets_le_cercle, poulets_recompenses_le_cercle, last_poulet_le_cercle
-        //  (SQL fourni séparément).
-        // ════════════════════════════════════════════════════════════
         const COL_POULETS    = 'poulets_le_cercle';
         const COL_RECOMPENSE = 'poulets_recompenses_le_cercle';
         const COL_LAST       = 'last_poulet_le_cercle';
         const SEUIL_POULET   = 10;   // carnet de 10
  
-        // ════════════════════════════════════════════════════════════
-        //  🔗 FORMULAIRE BREVO — SCAN POULET (Le Cercle)
-        //  Form "scan" : met à jour l'attribut POINTS_POULET du contact
-        //  à chaque passage. Même méthode que le scanner visites (iframe).
-        //  Si '#', l'envoi est ignoré (le scan Supabase marche quand même).
-        // ════════════════════════════════════════════════════════════
         const BREVO_FORM_SCAN_POULET = 'https://9d65705b.sibforms.com/serve/MUIFAEVDrMIsH4UMTnF2lg_WiBy-EsExQMWUo1dkYCPPMeoQObLud32pMblBmhP2oL9bl6Ka2gnT2gFeLZzbyryejj0hzHriwhMOa6sbA-AvUpdwYWcoarROIoPZqCfqZyBvMLS2nM4xKK5rqM8YpG2vW65Vl6M5XhImaiMz2oIiFThb84fZTVyZ5tiOG0KDxK1McPZS9enDfUhO5g==';
  
-        // Envoi silencieux vers Brevo via iframe cachée — méthode IDENTIQUE
-        // à inscription.html visites (qui fonctionne). Signature positionnelle,
-        // iframe 'brevo_iframe', removeChild à 2000ms. Champ POINTS_POULET.
         function soumettreBrevo(actionUrl, email, prenom, nom, sms, anniversaire, pointsPoulet) {
             if (!actionUrl || actionUrl === '#') return;
             const tmpForm = document.createElement('form');
@@ -218,10 +203,10 @@
  
         nomRestoEl.innerText = config.nom || 'Le Cercle';
 
-        // ── Onglet "Visites" → retour vers le scanner visites ──
+        // Onglet "Visites" → retour vers le scanner visites
         document.getElementById('lienVisites').href = 'scanner.html?resto=' + config.id;
  
-        // ── Sélecteur de quantité ──
+        // Sélecteur de quantité
         document.getElementById('qtyMoins').addEventListener('click', () => {
             if (quantite > 1) { quantite--; qtyValue.innerText = quantite; }
         });
@@ -251,19 +236,17 @@
             setTimeout(() => {
                 validationOverlay.classList.remove('show');
                 scanVerrouille = false;
-                // On remet la quantité à 1 pour le client suivant
                 quantite = 1; qtyValue.innerText = quantite;
             }, 2600);
         }
  
-        // ── Traitement du scan ──
         async function traiterScan(email) {
             if (scanVerrouille) return;
             scanVerrouille = true;
             loadingIndicator.classList.add('active');
  
             const emailNormalise = email.toLowerCase().trim();
-            const qteAjoutee = quantite;   // figé au moment du scan
+            const qteAjoutee = quantite;
  
             try {
                 const { data: client, error: fetchError } = await _supabase
@@ -280,44 +263,24 @@
                     return hideValidation();
                 }
  
-                // ════════════════════════════════════════════════════
-                //  LOGIQUE CARNET POULET (carnet de 10)
-                //
-                //  Comportement voulu : « au 10e, le prochain est offert ».
-                //   • On ajoute la quantité achetée.
-                //   • Si la carte était DÉJÀ pleine (≥10) → ce passage
-                //     OFFRE le(s) poulet(s) : récompense comptée, et on
-                //     repart à 0 + le surplus éventuel.
-                //   • Sinon, on cumule. Si on ATTEINT/ DÉPASSE 10 →
-                //     la carte est pleine (le prochain passage offrira).
-                //
-                //  Gestion de la quantité : si un client ajoute 3 poulets
-                //  et passe de 9 à 12, on plafonne l'affichage à 10
-                //  (carte pleine) ; le prochain passage déclenchera l'offre
-                //  et reportera le surplus (2).
-                // ════════════════════════════════════════════════════
                 const scoreActuel = client[COL_POULETS] || 0;
                 let nouveauScore;
                 let estCadeau = false;
                 let surplus = 0;
  
                 if (scoreActuel >= SEUIL_POULET) {
-                    // Carte déjà pleine → ce passage offre le poulet et repart
                     estCadeau = true;
-                    // on repart du surplus de la carte pleine, + la quantité de ce passage
-                    const restant = scoreActuel - SEUIL_POULET; // surplus reporté
+                    const restant = scoreActuel - SEUIL_POULET;
                     nouveauScore = restant + qteAjoutee;
                     if (nouveauScore >= SEUIL_POULET) {
                         surplus = nouveauScore - SEUIL_POULET;
-                        nouveauScore = SEUIL_POULET; // re-plafonne (rare, gros achat)
+                        nouveauScore = SEUIL_POULET;
                     }
                 } else {
                     nouveauScore = scoreActuel + qteAjoutee;
                     if (nouveauScore > SEUIL_POULET) {
-                        // dépassement : on plafonne à 10 (carte pleine), surplus reporté au prochain
                         nouveauScore = SEUIL_POULET;
                     }
-                    // NB : atteindre 10 = carte pleine, mais l'offre se fait au PROCHAIN passage
                 }
  
                 const updateData = {
@@ -335,7 +298,6 @@
  
                 if (updateError) throw updateError;
  
-                // Historique (réutilise historique_scans, marqué poulet via restaurant_id)
                 await _supabase.from('historique_scans').insert({
                     client_email:  emailNormalise,
                     restaurant_id: config.id + '_poulet',
@@ -344,8 +306,6 @@
                     est_cadeau:    estCadeau
                 });
  
-                // ── Envoi Brevo (form scan), silencieux et non bloquant ──
-                // Met à jour l'attribut POINTS_POULET du contact dans Brevo.
                 soumettreBrevo(
                     BREVO_FORM_SCAN_POULET,
                     client.email || emailNormalise,
@@ -356,7 +316,6 @@
                     nouveauScore
                 );
  
-                // Affichage
                 if (estCadeau) {
                     showValidation('reward', '🍗', 'POULET OFFERT !',
                         `${client.prenom ? client.prenom + ' a son poulet offert !' : 'Poulet offert !'} La carte repart.`,
@@ -382,9 +341,28 @@
             }
         }
  
-        // ── Caméra (même cascade que scanner.html) ──
+        // ════════════════════════════════════════════════════════════
+        //  CAMÉRA — CORRECTIFS pour que le scan remarche avec la barre :
+        //   • on attend que le layout soit posé (la barre d'onglets prend
+        //     de la place) avant de démarrer la caméra ;
+        //   • qrbox calculée selon la taille RÉELLE de la zone caméra
+        //     (au lieu d'un 280 fixe qui pouvait dépasser et casser).
+        // ════════════════════════════════════════════════════════════
         function onScanSuccess(decodedText) { traiterScan(decodedText); }
-        const scanConfig = { fps: 30, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0, useBarCodeDetectorIfAvailable: true };
+
+        // qrbox dynamique : ~70% du plus petit côté de la zone visible
+        function qrboxDynamique(viewfinderWidth, viewfinderHeight) {
+            const mini = Math.min(viewfinderWidth, viewfinderHeight);
+            const taille = Math.max(150, Math.floor(mini * 0.7));
+            return { width: taille, height: taille };
+        }
+
+        const scanConfig = {
+            fps: 10,
+            qrbox: qrboxDynamique,
+            aspectRatio: 1.0,
+            useBarCodeDetectorIfAvailable: true
+        };
  
         async function demarrerCamera() {
             btnStartCamera.style.display = 'none';
@@ -409,7 +387,11 @@
             }
         }
  
-        demarrerCamera().catch(() => { btnStartCamera.style.display = 'inline-block'; });
+        // On laisse le layout (barre d'onglets + quantité) se poser avant
+        // de démarrer la caméra, sinon html5-qrcode calcule une mauvaise taille.
+        setTimeout(() => {
+            demarrerCamera().catch(() => { btnStartCamera.style.display = 'inline-block'; });
+        }, 400);
         btnStartCamera.addEventListener('click', demarrerCamera);
     });
     </script>
