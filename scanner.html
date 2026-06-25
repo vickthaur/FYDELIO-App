@@ -4,40 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner Pro | FYDELIO</title>
-   
+    
     <script src="config.js"></script>
-    <script src=https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2></script>
-    <script src=https://unpkg.com/html5-qrcode type="text/javascript"></script>
-    <link href=https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap rel="stylesheet">
-   
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --primary: #0F766E;
+        :root { 
+            --primary: #0F766E; 
             --primary-glow: rgba(15,118,110,0.2);
-            --poulet: #C2410C;
-            --poulet-glow: rgba(194,65,12,0.2);
             --success: #22c55e;
             --reward: #f59e0b;
             --error: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #0F172A;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #0F172A; 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
             padding: 0;
             text-align: center;
             background-image: radial-gradient(circle at top center, var(--primary-glow) 0%, transparent 70%);
-            transition: background-image 0.3s ease;
         }
-        /* Mode poulet : on bascule l'accent en orange (le reste ne change pas) */
-        body.mode-poulet { background-image: radial-gradient(circle at top center, var(--poulet-glow) 0%, transparent 70%); --primary: var(--poulet); --primary-glow: var(--poulet-glow); }
- 
+
         .scanner-wrapper {
             width: 100%;
             height: 100vh;
@@ -45,7 +40,7 @@
             flex-direction: column;
             position: relative;
         }
- 
+
         .header {
             padding: 30px 20px;
             background: rgba(0,0,0,0.3);
@@ -53,80 +48,32 @@
             border-bottom: 1px solid rgba(255,255,255,0.08);
             z-index: 10;
         }
- 
-        .brand-tag {
-            font-size: 10px;
-            font-weight: 800;
-            color: var(--primary);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
+
+        .brand-tag { 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: var(--primary); 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            margin-bottom: 10px; 
             opacity: 0.8;
         }
- 
-        .logo-resto {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: white;
-            font-weight: 800;
+
+        .logo-resto { 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            color: white; 
+            font-weight: 800; 
             margin-bottom: 8px;
         }
- 
-        .title {
-            font-size: 24px;
-            font-weight: 800;
+
+        .title { 
+            font-size: 24px; 
+            font-weight: 800; 
             letter-spacing: -0.5px;
         }
 
-        /* ── AJOUT : onglets de mode ── */
-        .mode-tabs {
-            display: flex;
-            gap: 8px;
-            padding: 14px 20px;
-            background: rgba(0,0,0,0.25);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            z-index: 10;
-        }
-        .mode-tab {
-            flex: 1;
-            padding: 12px 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
-            font-weight: 800;
-            font-family: inherit;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-        }
-        .mode-tab.active { color: white; }
-        .mode-tab[data-mode="visites"].active { background: #0F766E; border-color: #0F766E; }
-        .mode-tab[data-mode="poulet"].active  { background: #C2410C; border-color: #C2410C; }
-        .mode-tab .ico { font-size: 17px; }
-
-        /* ── AJOUT : barre quantité (poulet uniquement) ── */
-        .qty-bar {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            padding: 16px 20px;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            z-index: 10;
-        }
-        body.mode-poulet .qty-bar { display: flex; }
-        .qty-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
-        .qty-btn { width: 46px; height: 46px; border-radius: 13px; border: none; background: var(--poulet); color: white; font-size: 25px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; line-height: 1; }
-        .qty-btn:active { transform: scale(0.92); }
-        .qty-value { font-size: 32px; font-weight: 800; min-width: 50px; }
- 
         .camera-container {
             flex: 1;
             display: flex;
@@ -136,7 +83,7 @@
             position: relative;
             overflow: hidden;
         }
- 
+
         #reader {
             width: 100%;
             height: 100%;
@@ -151,7 +98,7 @@
             object-fit: cover !important;
             border-radius: 0 !important;
         }
- 
+
         #reader button {
             background: var(--primary) !important;
             color: white !important;
@@ -163,7 +110,7 @@
             cursor: pointer !important;
             font-family: 'Plus Jakarta Sans', sans-serif !important;
         }
- 
+
         #reader a {
             color: var(--primary) !important;
             text-decoration: none;
@@ -171,7 +118,7 @@
             margin-top: 10px;
             display: block;
         }
- 
+
         /* Bouton de secours si l'autostart échoue */
         .btn-start-camera {
             background: var(--primary);
@@ -185,7 +132,7 @@
             cursor: pointer;
             display: none;
         }
- 
+
         /* Validation overlay */
         .validation-overlay {
             position: fixed;
@@ -200,18 +147,18 @@
             z-index: 100;
             backdrop-filter: blur(5px);
         }
- 
+
         .validation-overlay.show {
             display: flex;
         }
- 
+
         .validation-content {
             text-align: center;
             animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             z-index: 2;
         }
- 
+
         @keyframes slideUp {
             from {
                 transform: translateY(40px);
@@ -222,14 +169,14 @@
                 opacity: 1;
             }
         }
- 
+
         .validation-icon {
             font-size: 80px;
             margin-bottom: 20px;
             display: block;
             animation: popScale 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
- 
+
         @keyframes popScale {
             0% {
                 transform: scale(0);
@@ -241,52 +188,52 @@
                 transform: scale(1);
             }
         }
- 
+
         .validation-client {
             font-size: 16px;
             color: rgba(255, 255, 255, 0.8);
             margin-bottom: 10px;
             font-weight: 600;
         }
- 
+
         .validation-title {
             font-size: 32px;
             font-weight: 800;
             margin-bottom: 10px;
             letter-spacing: -1px;
         }
- 
+
         .validation-text {
             font-size: 14px;
             color: rgba(255, 255, 255, 0.7);
             margin-bottom: 30px;
             line-height: 1.5;
         }
- 
+
         .validation-score {
             font-size: 72px;
             font-weight: 800;
             margin-bottom: 20px;
             text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
- 
+
         /* États de validation */
         .validation-overlay.success .validation-overlay-bg {
             background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2));
         }
- 
+
         .validation-overlay.reward .validation-overlay-bg {
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.2));
         }
- 
+
         .validation-overlay.error .validation-overlay-bg {
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.2));
         }
- 
+
         .validation-overlay.warning .validation-overlay-bg {
             background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(234, 88, 12, 0.2));
         }
- 
+
         .validation-overlay-bg {
             position: fixed;
             top: 0;
@@ -296,7 +243,7 @@
             transition: background 0.3s ease;
             z-index: 1;
         }
- 
+
         .footer {
             padding: 20px;
             background: rgba(0, 0, 0, 0.3);
@@ -307,7 +254,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
- 
+
         /* Indicateur de chargement */
         .loading-indicator {
             position: fixed;
@@ -322,17 +269,17 @@
             display: none;
             z-index: 50;
         }
- 
+
         .loading-indicator.active {
             display: block;
         }
- 
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
             }
         }
- 
+
         /* Stats rapides */
         .stats-bar {
             position: fixed;
@@ -348,13 +295,13 @@
             backdrop-filter: blur(10px);
             z-index: 50;
         }
- 
+
         .stats-bar span {
             display: inline-block;
             margin-left: 15px;
             color: var(--primary);
         }
- 
+
         @media (max-width: 768px) {
             .stats-bar {
                 left: 15px;
@@ -370,33 +317,19 @@
         <div class="header">
             <div class="brand-tag">Terminal de scan FYDELIO</div>
             <div class="logo-resto nom-resto">Chargement...</div>
-            <div class="title" id="scanTitle">Scanner Client</div>
+            <div class="title">Scanner Client</div>
         </div>
 
-        <!-- ── AJOUT : onglets de mode ── -->
-        <div class="mode-tabs">
-            <button class="mode-tab active" data-mode="visites" type="button"><span class="ico">🎫</span> Visites</button>
-            <button class="mode-tab" data-mode="poulet" type="button"><span class="ico">🍗</span> Poulet</button>
-        </div>
-
-        <!-- ── AJOUT : barre quantité (poulet) ── -->
-        <div class="qty-bar">
-            <span class="qty-label">Poulets achetés</span>
-            <button class="qty-btn" id="qtyMoins" type="button">−</button>
-            <span class="qty-value" id="qtyValue">1</span>
-            <button class="qty-btn" id="qtyPlus" type="button">+</button>
-        </div>
- 
         <div class="camera-container">
             <div id="reader"></div>
             <button class="btn-start-camera" id="btnStartCamera">📷 Activer la caméra</button>
         </div>
- 
+
         <div class="footer">
             Système Sécurisé FYDELIO v5.3 • Scan en Chaîne
         </div>
     </div>
- 
+
     <!-- Overlay de validation -->
     <div class="validation-overlay" id="validationOverlay">
         <div class="validation-overlay-bg"></div>
@@ -408,38 +341,27 @@
             <div class="validation-score" id="validationScore" style="display: none;">0</div>
         </div>
     </div>
- 
+
     <div class="loading-indicator" id="loadingIndicator"></div>
     <div class="stats-bar" id="statsBar">
         Scans: <span id="scanCount">0</span>
     </div>
- 
-    <script>
-    // ════════════════════════════════════════════════════════════════
-    //  🍗 RÉGLAGES POULET en dur (séparés du config.js) — AJOUT
-    // ════════════════════════════════════════════════════════════════
-    const COL_POULETS    = 'poulets_le_cercle';
-    const COL_RECOMPENSE = 'poulets_recompenses_le_cercle';
-    const COL_LAST       = 'last_poulet_le_cercle';
-    const SEUIL_POULET   = 10;
-    const BREVO_FORM_SCAN_POULET = 'https://9d65705b.sibforms.com/serve/MUIFAEVDrMIsH4UMTnF2lg_WiBy-EsExQMWUo1dkYCPPMeoQObLud32pMblBmhP2oL9bl6Ka2gnT2gFeLZzbyryejj0hzHriwhMOa6sbA-AvUpdwYWcoarROIoPZqCfqZyBvMLS2nM4xKK5rqM8YpG2vW65Vl6M5XhImaiMz2oIiFThb84fZTVyZ5tiOG0KDxK1McPZS9enDfUhO5g==';
 
+    <script>
     document.addEventListener('DOMContentLoaded', () => {
         const config = appliquerConfig();
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const params = new URLSearchParams(window.location.search);
-       
+        
         // État global
         let scanVerrouille = false;
         let scanCount = 0;
         let html5Qrcode = null;
-        let mode = 'visites';   // AJOUT : 'visites' | 'poulet'
-        let quantite = 1;       // AJOUT : quantité poulets
- 
+
         // Colonnes directement depuis la config
         const colPoints = config.colonnePoints;
         const colSecu = config.colonneSecu;
- 
+
         // Éléments UI
         const validationOverlay = document.getElementById('validationOverlay');
         const validationIcon = document.getElementById('validationIcon');
@@ -451,56 +373,30 @@
         const scanCountDisplay = document.getElementById('scanCount');
         const nomRestoEl = document.querySelector('.nom-resto');
         const btnStartCamera = document.getElementById('btnStartCamera');
-        const qtyValueEl = document.getElementById('qtyValue');     // AJOUT
-        const scanTitle = document.getElementById('scanTitle');     // AJOUT
- 
+
         // Afficher le restaurant
         nomRestoEl.innerText = config.nom || 'Restaurant';
 
-        // ── AJOUT : onglet poulet visible UNIQUEMENT pour Le Cercle ──
-        const tabPoulet = document.querySelector('.mode-tab[data-mode="poulet"]');
-        if (config.id !== 'le_cercle') tabPoulet.style.display = 'none';
-
-        function setMode(nouveauMode) {
-            mode = nouveauMode;
-            document.querySelectorAll('.mode-tab').forEach(t =>
-                t.classList.toggle('active', t.getAttribute('data-mode') === mode));
-            document.body.classList.toggle('mode-poulet', mode === 'poulet');
-            scanTitle.innerText = mode === 'poulet' ? '🍗 Scanner Poulet' : 'Scanner Client';
-        }
-        document.querySelectorAll('.mode-tab').forEach(tab => {
-            tab.addEventListener('click', () => setMode(tab.getAttribute('data-mode')));
-        });
-
-        // ── AJOUT : sélecteur de quantité ──
-        document.getElementById('qtyMoins').addEventListener('click', () => {
-            if (quantite > 1) { quantite--; qtyValueEl.innerText = quantite; }
-        });
-        document.getElementById('qtyPlus').addEventListener('click', () => {
-            if (quantite < 20) { quantite++; qtyValueEl.innerText = quantite; }
-        });
- 
         // Afficher overlay de validation
-        // (AJOUT du paramètre scoreSuffix pour afficher "x / 10" en mode poulet)
-        function showValidation(type, icon, title, text, score = null, prenom = null, scoreSuffix = '') {
+        function showValidation(type, icon, title, text, score = null, prenom = null) {
             validationIcon.innerText = icon;
             validationTitle.innerText = title;
             validationText.innerText = text;
             validationClient.innerText = prenom || '';
- 
+
             validationOverlay.classList.remove('success', 'error', 'warning', 'reward');
             validationOverlay.classList.add(type);
- 
+
             if (score !== null) {
-                validationScore.innerText = score + scoreSuffix;
+                validationScore.innerText = score;
                 validationScore.style.display = 'block';
             } else {
                 validationScore.style.display = 'none';
             }
- 
+
             validationOverlay.classList.add('show');
         }
- 
+
         // Masquer overlay et déverrouiller scan
         function hideValidation() {
             setTimeout(() => {
@@ -508,16 +404,112 @@
                 scanVerrouille = false;
             }, 2500);
         }
- 
-        // ── AJOUT : dispatch selon le mode ──
+
+        // Traiter le scan
         async function traiterScan(email) {
             if (scanVerrouille) return;
             scanVerrouille = true;
             loadingIndicator.classList.add('active');
+
             const emailNormalise = email.toLowerCase().trim();
+
             try {
-                if (mode === 'poulet') await traiterPoulet(emailNormalise);
-                else await traiterVisite(emailNormalise);
+                // 1. Recherche du client par email
+                const { data: client, error: fetchError } = await _supabase
+                    .from('clients')
+                    .select(`prenom, email, recompenses_obtenues, ${colPoints}, ${colSecu}`)
+                    .eq('email', emailNormalise)
+                    .maybeSingle();
+
+                if (fetchError) throw fetchError;
+
+                // Client introuvable
+                if (!client) {
+                    showValidation('error', '❌', 'Inconnu', 'Ce QR Code n\'est pas enregistré.');
+                    loadingIndicator.classList.remove('active');
+                    return hideValidation();
+                }
+
+                // Anti-fraude
+                if (client[colSecu]) {
+                    const heures = (Date.now() - new Date(client[colSecu]).getTime()) / 3600000;
+                    if (heures < config.delaiAntiFraudeHeures) {
+                        showValidation('warning', '🛡️', 'Déjà scanné', `${client.prenom || 'Ce client'} a déjà été validé aujourd'hui.`, null, client.prenom);
+                        loadingIndicator.classList.remove('active');
+                        return hideValidation();
+                    }
+                }
+
+                // ════════════════════════════════════════════════════════════
+                //  CALCUL DES POINTS — LOGIQUE FYDELIO
+                //
+                //  Comportement voulu :
+                //   • Au passage qui ATTEINT le seuil → la carte affiche "5"
+                //     (carte pleine), le cadeau est annoncé, et la récompense
+                //     est comptée UNE seule fois.
+                //   • Le client garde son "5" affiché jusqu'à son prochain
+                //     passage.
+                //   • Au passage SUIVANT → la carte repart à 1 (nouveau cycle),
+                //     SANS recompter de récompense.
+                //
+                //  La récompense n'est comptée qu'au moment précis où on
+                //  atteint le seuil → plus jamais de double-comptage (+2).
+                // ════════════════════════════════════════════════════════════
+                const scoreActuel = client[colPoints] || 0;
+                let nouveauScore;
+                let estCadeau = false;
+
+                if (scoreActuel >= config.seuilPoints) {
+                    // La carte était déjà pleine (ex: 5) → ce scan démarre un
+                    // nouveau cycle. Le cadeau a DÉJÀ été compté au tour précédent.
+                    nouveauScore = 1;
+                    estCadeau    = false;   // ← surtout PAS de récompense ici
+                } else {
+                    nouveauScore = scoreActuel + 1;
+                    if (nouveauScore >= config.seuilPoints) {
+                        // On vient d'atteindre le seuil → cadeau + comptage unique
+                        estCadeau = true;
+                    }
+                }
+
+                // Mise à jour en base
+                const updateData = {
+                    [colPoints]: nouveauScore,
+                    [colSecu]: new Date().toISOString()
+                };
+                if (estCadeau) {
+                    updateData.recompenses_obtenues = (client.recompenses_obtenues || 0) + 1;
+                }
+
+                const { error: updateError } = await _supabase
+                    .from('clients')
+                    .update(updateData)
+                    .eq('email', emailNormalise);
+
+                if (updateError) throw updateError;
+
+                // Enregistrement historique_scans
+                await _supabase.from('historique_scans').insert({
+                    client_email: emailNormalise,
+                    restaurant_id: config.id,
+                    points_avant: scoreActuel,
+                    points_apres: nouveauScore,
+                    est_cadeau: estCadeau
+                });
+
+                // Incrémenter compteur et afficher résultat
+                scanCount++;
+                scanCountDisplay.innerText = scanCount;
+
+                if (estCadeau) {
+                    showValidation('reward', '🎁', 'CADEAU !', `${client.prenom ? client.prenom + ' a débloqué sa récompense !' : 'Récompense débloquée !'}`, nouveauScore, client.prenom);
+                } else {
+                    showValidation('success', '✅', 'VALIDÉ', `Point ajouté pour ${client.prenom || 'ce client'}.`, nouveauScore, client.prenom);
+                }
+
+                loadingIndicator.classList.remove('active');
+                hideValidation();
+
             } catch (err) {
                 console.error('FYDELIO scanner error:', err);
                 showValidation('error', '⚠️', 'Erreur', 'Impossible de joindre la base.');
@@ -526,211 +518,30 @@
             }
         }
 
-        // ════════════════════════════════════════════════════════════
-        //  MODE VISITES — ta logique d'origine, INCHANGÉE
-        // ════════════════════════════════════════════════════════════
-        async function traiterVisite(emailNormalise) {
-            // 1. Recherche du client par email
-            const { data: client, error: fetchError } = await _supabase
-                .from('clients')
-                .select(`prenom, email, recompenses_obtenues, ${colPoints}, ${colSecu}`)
-                .eq('email', emailNormalise)
-                .maybeSingle();
-
-            if (fetchError) throw fetchError;
-
-            // Client introuvable
-            if (!client) {
-                showValidation('error', '❌', 'Inconnu', 'Ce QR Code n\'est pas enregistré.');
-                loadingIndicator.classList.remove('active');
-                return hideValidation();
-            }
-
-            // Anti-fraude
-            if (client[colSecu]) {
-                const heures = (Date.now() - new Date(client[colSecu]).getTime()) / 3600000;
-                if (heures < config.delaiAntiFraudeHeures) {
-                    showValidation('warning', '🛡️', 'Déjà scanné', `${client.prenom || 'Ce client'} a déjà été validé aujourd'hui.`, null, client.prenom);
-                    loadingIndicator.classList.remove('active');
-                    return hideValidation();
-                }
-            }
-
-            // ════════════════════════════════════════════════════════════
-            //  CALCUL DES POINTS — LOGIQUE FYDELIO
-            //   • Au passage qui ATTEINT le seuil → carte pleine affichée,
-            //     cadeau annoncé, récompense comptée UNE fois.
-            //   • Au passage SUIVANT → repart à 1, sans recompter.
-            // ════════════════════════════════════════════════════════════
-            const scoreActuel = client[colPoints] || 0;
-            let nouveauScore;
-            let estCadeau = false;
-
-            if (scoreActuel >= config.seuilPoints) {
-                nouveauScore = 1;
-                estCadeau    = false;
-            } else {
-                nouveauScore = scoreActuel + 1;
-                if (nouveauScore >= config.seuilPoints) {
-                    estCadeau = true;
-                }
-            }
-
-            // Mise à jour en base
-            const updateData = {
-                [colPoints]: nouveauScore,
-                [colSecu]: new Date().toISOString()
-            };
-            if (estCadeau) {
-                updateData.recompenses_obtenues = (client.recompenses_obtenues || 0) + 1;
-            }
-
-            const { error: updateError } = await _supabase
-                .from('clients')
-                .update(updateData)
-                .eq('email', emailNormalise);
-
-            if (updateError) throw updateError;
-
-            // Enregistrement historique_scans
-            await _supabase.from('historique_scans').insert({
-                client_email: emailNormalise,
-                restaurant_id: config.id,
-                points_avant: scoreActuel,
-                points_apres: nouveauScore,
-                est_cadeau: estCadeau
-            });
-
-            // Incrémenter compteur et afficher résultat
-            scanCount++;
-            scanCountDisplay.innerText = scanCount;
-
-            if (estCadeau) {
-                showValidation('reward', '🎁', 'CADEAU !', `${client.prenom ? client.prenom + ' a débloqué sa récompense !' : 'Récompense débloquée !'}`, nouveauScore, client.prenom);
-            } else {
-                showValidation('success', '✅', 'VALIDÉ', `Point ajouté pour ${client.prenom || 'ce client'}.`, nouveauScore, client.prenom);
-            }
-
-            loadingIndicator.classList.remove('active');
-            hideValidation();
-        }
-
-        // ════════════════════════════════════════════════════════════
-        //  MODE POULET — carnet de 10, quantité, Brevo (AJOUT)
-        // ════════════════════════════════════════════════════════════
-        async function traiterPoulet(emailNormalise) {
-            const { data: client, error: fetchError } = await _supabase
-                .from('clients')
-                .select(`prenom, nom, email, telephone, date_anniversaire, ${COL_POULETS}, ${COL_RECOMPENSE}, ${COL_LAST}`)
-                .eq('email', emailNormalise)
-                .maybeSingle();
-            if (fetchError) throw fetchError;
-
-            if (!client) {
-                showValidation('error', '❌', 'Inconnu', 'Ce QR Code n\'est pas enregistré.');
-                loadingIndicator.classList.remove('active');
-                return hideValidation();
-            }
-            // Pas inscrit poulet (colonne NULL)
-            if (client[COL_POULETS] === null || client[COL_POULETS] === undefined) {
-                showValidation('error', '🍗', 'Pas inscrit', `${client.prenom || 'Ce client'} n\'a pas de carte poulet.`, null, client.prenom);
-                loadingIndicator.classList.remove('active');
-                return hideValidation();
-            }
-
-            // Carnet : ajoute quantite, paliers de 10 → récompenses, surplus reporté
-            const scoreActuel = client[COL_POULETS] || 0;
-            const recompensesActuelles = client[COL_RECOMPENSE] || 0;
-            let total = scoreActuel + quantite;
-            let recompensesGagnees = 0;
-            while (total >= SEUIL_POULET) { recompensesGagnees++; total -= SEUIL_POULET; }
-            let nouveauScore = total;
-            const estCadeau = recompensesGagnees > 0;
-            if (estCadeau && total === 0) nouveauScore = SEUIL_POULET;  // carte pleine affichée ce coup-ci
-
-            const updateData = { [COL_POULETS]: nouveauScore, [COL_LAST]: new Date().toISOString() };
-            if (estCadeau) updateData[COL_RECOMPENSE] = recompensesActuelles + recompensesGagnees;
-
-            const { error: updateError } = await _supabase
-                .from('clients').update(updateData).eq('email', emailNormalise);
-            if (updateError) throw updateError;
-
-            await _supabase.from('historique_scans').insert({
-                client_email: emailNormalise,
-                restaurant_id: config.id + '_poulet',
-                points_avant: scoreActuel,
-                points_apres: nouveauScore,
-                est_cadeau: estCadeau
-            });
-
-            // Brevo (non bloquant) — POINTS_POULET = total à jour
-            if (BREVO_FORM_SCAN_POULET && BREVO_FORM_SCAN_POULET !== '#') {
-                soumettreBrevoPoulet(
-                    client.email || emailNormalise,
-                    client.prenom || '', client.nom || '',
-                    client.telephone || '', client.date_anniversaire || '',
-                    nouveauScore
-                );
-            }
-
-            scanCount++;
-            scanCountDisplay.innerText = scanCount;
-
-            if (estCadeau) {
-                const txt = recompensesGagnees > 1
-                    ? `${recompensesGagnees} poulets offerts pour ${client.prenom || 'ce client'} !`
-                    : `${client.prenom ? client.prenom + ' a gagné un poulet offert !' : 'Poulet offert débloqué !'}`;
-                showValidation('reward', '🎁', 'POULET OFFERT !', txt, nouveauScore, client.prenom, ' / ' + SEUIL_POULET);
-            } else {
-                const sfx = quantite > 1 ? `+${quantite} poulets` : '+1 poulet';
-                showValidation('success', '🍗', 'VALIDÉ', `${sfx} pour ${client.prenom || 'ce client'}.`, nouveauScore, client.prenom, ' / ' + SEUIL_POULET);
-            }
-
-            loadingIndicator.classList.remove('active');
-            hideValidation();
-        }
-
-        // Brevo poulet — structure identique à l'inscription visites + POINTS_POULET
-        function soumettreBrevoPoulet(email, prenom, nom, sms, anniversaire, pointsPoulet) {
-            const tmpForm = document.createElement('form');
-            tmpForm.method='POST'; tmpForm.action=BREVO_FORM_SCAN_POULET; tmpForm.target='brevo_iframe'; tmpForm.style.display='none';
-            const champs = { 'EMAIL':email,'PRENOM':prenom,'NOM':nom,'SMS':sms||'','DATE_ANNIVERSAIRE':anniversaire||'','POINTS_POULET':(pointsPoulet ?? '').toString(),'email_address_check':'','locale':'fr' };
-            Object.entries(champs).forEach(([name,value]) => {
-                const input = document.createElement('input');
-                input.type='hidden'; input.name=name; input.value=value||'';
-                tmpForm.appendChild(input);
-            });
-            document.body.appendChild(tmpForm);
-            if (!document.getElementById('brevo_iframe')) {
-                const iframe = document.createElement('iframe');
-                iframe.name='brevo_iframe'; iframe.id='brevo_iframe'; iframe.style.display='none';
-                document.body.appendChild(iframe);
-            }
-            tmpForm.submit();
-            setTimeout(() => document.body.removeChild(tmpForm), 2000);
-        }
- 
         // ────────────────────────────────────────────────────────────────
-        //  CAMÉRA — Sélection AUTOMATIQUE de la caméra arrière (INCHANGÉ)
+        //  CAMÉRA — Sélection AUTOMATIQUE de la caméra arrière
+        //  Html5Qrcode (bas niveau) + facingMode "environment".
+        //  Pas de menu, pas de clic : la caméra arrière démarre directement.
         // ────────────────────────────────────────────────────────────────
         function onScanSuccess(decodedText) {
             traiterScan(decodedText);
         }
- 
+
         const scanConfig = {
             fps: 30,
             qrbox: { width: 280, height: 280 },
             aspectRatio: 1.0,
             useBarCodeDetectorIfAvailable: true
         };
- 
+
         async function demarrerCamera() {
             btnStartCamera.style.display = 'none';
             if (!html5Qrcode) {
                 html5Qrcode = new Html5Qrcode("reader", { verbose: false });
             }
- 
+
             try {
+                // Tentative 1 — caméra arrière directe via facingMode (strict)
                 await html5Qrcode.start(
                     { facingMode: { exact: "environment" } },
                     scanConfig,
@@ -740,6 +551,7 @@
             } catch (e1) {
                 console.warn('facingMode exact:environment indisponible, tentative souple…', e1);
                 try {
+                    // Tentative 2 — facingMode souple
                     await html5Qrcode.start(
                         { facingMode: "environment" },
                         scanConfig,
@@ -749,13 +561,14 @@
                 } catch (e2) {
                     console.warn('facingMode environment indisponible, sélection manuelle…', e2);
                     try {
+                        // Tentative 3 — lister les caméras et choisir l'arrière
                         const cameras = await Html5Qrcode.getCameras();
                         if (!cameras || cameras.length === 0) throw new Error('Aucune caméra détectée');
- 
+
                         const arriere = cameras.find(c =>
                             /back|rear|arrière|environment/i.test(c.label)
                         ) || cameras[cameras.length - 1];
- 
+
                         await html5Qrcode.start(
                             arriere.id,
                             scanConfig,
@@ -770,7 +583,8 @@
                 }
             }
         }
- 
+
+        // Démarrage auto ; bouton de secours si le navigateur bloque l'autostart
         demarrerCamera().catch(() => {
             btnStartCamera.style.display = 'inline-block';
         });
