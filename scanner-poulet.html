@@ -28,14 +28,41 @@
             background-image: radial-gradient(circle at top center, var(--primary-glow) 0%, transparent 70%);
         }
         .scanner-wrapper { width: 100%; height: 100vh; display: flex; flex-direction: column; position: relative; }
-        .header { padding: 24px 20px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08); z-index: 10; position: relative; }
+        .header { padding: 24px 20px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08); z-index: 10; }
         .brand-tag { font-size: 10px; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; opacity: 0.9; }
         .logo-resto { font-size: 13px; text-transform: uppercase; letter-spacing: 4px; color: white; font-weight: 800; margin-bottom: 6px; }
         .title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
 
-        /* ── AJOUT : bouton retour vers le scanner visites ── */
-        .btn-retour { position: absolute; top: 22px; left: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 9px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; z-index: 20; }
-        .btn-retour:active { transform: scale(0.95); }
+        /* ── Onglets (même disposition que le scanner visites) ── */
+        .mode-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 14px 20px;
+            background: rgba(0,0,0,0.25);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            z-index: 10;
+        }
+        .mode-tab {
+            flex: 1;
+            padding: 12px 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            text-decoration: none;
+        }
+        .mode-tab.active { background: #C2410C; border-color: #C2410C; color: white; }
+        .mode-tab.visites:hover { background: rgba(15,118,110,0.15); border-color: #0F766E; color: white; }
+        .mode-tab .ico { font-size: 17px; }
  
         /* Sélecteur de quantité */
         .qty-bar { padding: 18px 20px; background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.08); z-index: 10; }
@@ -78,10 +105,15 @@
 <body>
     <div class="scanner-wrapper">
         <div class="header">
-            <a class="btn-retour" id="btnRetour" href="#">← Visites</a>
             <div class="brand-tag">🍗 Carte Poulet FYDELIO</div>
             <div class="logo-resto nom-resto">Chargement...</div>
             <div class="title">Scanner Poulet</div>
+        </div>
+
+        <!-- ── Onglets (même disposition que le scanner visites) ── -->
+        <div class="mode-tabs">
+            <a class="mode-tab visites" id="lienVisites" href="#"><span class="ico">🎫</span> Visites</a>
+            <button class="mode-tab active" type="button"><span class="ico">🍗</span> Poulet</button>
         </div>
  
         <!-- Sélecteur de quantité AVANT le scan -->
@@ -186,8 +218,8 @@
  
         nomRestoEl.innerText = config.nom || 'Le Cercle';
 
-        // ── AJOUT : bouton retour vers le scanner visites ──
-        document.getElementById('btnRetour').href = 'scanner.html?resto=' + config.id;
+        // ── Onglet "Visites" → retour vers le scanner visites ──
+        document.getElementById('lienVisites').href = 'scanner.html?resto=' + config.id;
  
         // ── Sélecteur de quantité ──
         document.getElementById('qtyMoins').addEventListener('click', () => {
