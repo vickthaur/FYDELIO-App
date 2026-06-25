@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Pro | FYDELIO</title>
+    
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary: #0F766E; 
+            --primary-glow: rgba(15,118,110,0.2);
+            --success: #22c55e;
+            --reward: #f59e0b;
+            --error: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #0F172A; 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            padding: 0;
+            text-align: center;
+            background-image: radial-gradient(circle at top center, var(--primary-glow) 0%, transparent 70%);
+        }
+
+        .scanner-wrapper {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 30px 20px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            z-index: 10;
+        }
+
+        .brand-tag { 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: var(--primary); 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            margin-bottom: 10px; 
+            opacity: 0.8;
+        }
+
+        .logo-resto { 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            color: white; 
+            font-weight: 800; 
+            margin-bottom: 8px;
+        }
+
+        .title { 
+            font-size: 24px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px;
+        }
+
+        .camera-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #reader {
+            width: 100%;
+            height: 100%;
+            border-radius: 0 !important;
+            overflow: hidden;
+            border: none !important;
+            background: black;
+        }
+        #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 0 !important;
+        }
+
+        #reader button {
+            background: var(--primary) !important;
+            color: white !important;
+            border: none !important;
+            padding: 14px 28px !important;
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+            margin-top: 15px !important;
+            cursor: pointer !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+
+        #reader a {
+            color: var(--primary) !important;
+            text-decoration: none;
+            font-size: 12px;
+            margin-top: 10px;
+            display: block;
+        }
+
+        /* Bouton de secours si l'autostart échoue */
+        .btn-start-camera {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: none;
+        }
+
+        /* Validation overlay */
+        .validation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .validation-overlay.show {
+            display: flex;
+        }
+
+        .validation-content {
+            text-align: center;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .validation-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+            animation: popScale 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popScale {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .validation-client {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .validation-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .validation-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .validation-score {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* États de validation */
+        .validation-overlay.success .validation-overlay-bg {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2));
+        }
+
+        .validation-overlay.reward .validation-overlay-bg {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.2));
+        }
+
+        .validation-overlay.error .validation-overlay-bg {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.2));
+        }
+
+        .validation-overlay.warning .validation-overlay-bg {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(234, 88, 12, 0.2));
+        }
+
+        .validation-overlay-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: background 0.3s ease;
+            z-index: 1;
+        }
+
+        .footer {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 10px;
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Indicateur de chargement */
+        .loading-indicator {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            z-index: 50;
+        }
+
+        .loading-indicator.active {
+            display: block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Stats rapides */
+        .stats-bar {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 12px 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+
+        .stats-bar span {
+            display: inline-block;
+            margin-left: 15px;
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .stats-bar {
+                left: 15px;
+                right: 15px;
+                top: auto;
+                bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanner-wrapper">
+        <div class="header">
+            <div class="brand-tag">Terminal de scan FYDELIO</div>
+            <div class="logo-resto nom-resto">Chargement...</div>
+            <div class="title">Scanner Client</div>
+        </div>
+
+        <div class="camera-container">
+            <div id="reader"></div>
+            <button class="btn-start-camera" id="btnStartCamera">📷 Activer la caméra</button>
+        </div>
+
+        <div class="footer">
+            Système Sécurisé FYDELIO v5.3 • Scan en Chaîne
+        </div>
+    </div>
+
+    <!-- Overlay de validation -->
+    <div class="validation-overlay" id="validationOverlay">
+        <div class="validation-overlay-bg"></div>
+        <div class="validation-content">
+            <span class="validation-icon" id="validationIcon">⏳</span>
+            <div class="validation-client" id="validationClient"></div>
+            <div class="validation-title" id="validationTitle">Validation...</div>
+            <div class="validation-text" id="validationText"></div>
+            <div class="validation-score" id="validationScore" style="display: none;">0</div>
+        </div>
+    </div>
+
+    <div class="loading-indicator" id="loadingIndicator"></div>
+    <div class="stats-bar" id="statsBar">
+        Scans: <span id="scanCount">0</span>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const config = appliquerConfig();
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const params = new URLSearchParams(window.location.search);
+        
+        // État global
+        let scanVerrouille = false;
+        let scanCount = 0;
+        let html5Qrcode = null;
+
+        // Colonnes directement depuis la config
+        const colPoints = config.colonnePoints;
+        const colSecu = config.colonneSecu;
+
+        // Éléments UI
+        const validationOverlay = document.getElementById('validationOverlay');
+        const validationIcon = document.getElementById('validationIcon');
+        const validationTitle = document.getElementById('validationTitle');
+        const validationText = document.getElementById('validationText');
+        const validationScore = document.getElementById('validationScore');
+        const validationClient = document.getElementById('validationClient');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const scanCountDisplay = document.getElementById('scanCount');
+        const nomRestoEl = document.querySelector('.nom-resto');
+        const btnStartCamera = document.getElementById('btnStartCamera');
+
+        // Afficher le restaurant
+        nomRestoEl.innerText = config.nom || 'Restaurant';
+
+        // Afficher overlay de validation
+        function showValidation(type, icon, title, text, score = null, prenom = null) {
+            validationIcon.innerText = icon;
+            validationTitle.innerText = title;
+            validationText.innerText = text;
+            validationClient.innerText = prenom || '';
+
+            validationOverlay.classList.remove('success', 'error', 'warning', 'reward');
+            validationOverlay.classList.add(type);
+
+            if (score !== null) {
+                validationScore.innerText = score;
+                validationScore.style.display = 'block';
+            } else {
+                validationScore.style.display = 'none';
+            }
+
+            validationOverlay.classList.add('show');
+        }
+
+        // Masquer overlay et déverrouiller scan
+        function hideValidation() {
+            setTimeout(() => {
+                validationOverlay.classList.remove('show');
+                scanVerrouille = false;
+            }, 2500);
+        }
+
+        // Traiter le scan
+        async function traiterScan(email) {
+            if (scanVerrouille) return;
+            scanVerrouille = true;
+            loadingIndicator.classList.add('active');
+
+            const emailNormalise = email.toLowerCase().trim();
+
+            try {
+                // 1. Recherche du client par email
+                const { data: client, error: fetchError } = await _supabase
+                    .from('clients')
+                    .select(`prenom, email, recompenses_obtenues, ${colPoints}, ${colSecu}`)
+                    .eq('email', emailNormalise)
+                    .maybeSingle();
+
+                if (fetchError) throw fetchError;
+
+                // Client introuvable
+                if (!client) {
+                    showValidation('error', '❌', 'Inconnu', 'Ce QR Code n\'est pas enregistré.');
+                    loadingIndicator.classList.remove('active');
+                    return hideValidation();
+                }
+
+                // Anti-fraude
+                if (client[colSecu]) {
+                    const heures = (Date.now() - new Date(client[colSecu]).getTime()) / 3600000;
+                    if (heures < config.delaiAntiFraudeHeures) {
+                        showValidation('warning', '🛡️', 'Déjà scanné', `${client.prenom || 'Ce client'} a déjà été validé aujourd'hui.`, null, client.prenom);
+                        loadingIndicator.classList.remove('active');
+                        return hideValidation();
+                    }
+                }
+
+                // ════════════════════════════════════════════════════════════
+                //  CALCUL DES POINTS — LOGIQUE FYDELIO
+                //
+                //  Comportement voulu :
+                //   • Au passage qui ATTEINT le seuil → la carte affiche "5"
+                //     (carte pleine), le cadeau est annoncé, et la récompense
+                //     est comptée UNE seule fois.
+                //   • Le client garde son "5" affiché jusqu'à son prochain
+                //     passage.
+                //   • Au passage SUIVANT → la carte repart à 1 (nouveau cycle),
+                //     SANS recompter de récompense.
+                //
+                //  La récompense n'est comptée qu'au moment précis où on
+                //  atteint le seuil → plus jamais de double-comptage (+2).
+                // ════════════════════════════════════════════════════════════
+                const scoreActuel = client[colPoints] || 0;
+                let nouveauScore;
+                let estCadeau = false;
+
+                if (scoreActuel >= config.seuilPoints) {
+                    // La carte était déjà pleine (ex: 5) → ce scan démarre un
+                    // nouveau cycle. Le cadeau a DÉJÀ été compté au tour précédent.
+                    nouveauScore = 1;
+                    estCadeau    = false;   // ← surtout PAS de récompense ici
+                } else {
+                    nouveauScore = scoreActuel + 1;
+                    if (nouveauScore >= config.seuilPoints) {
+                        // On vient d'atteindre le seuil → cadeau + comptage unique
+                        estCadeau = true;
+                    }
+                }
+
+                // Mise à jour en base
+                const updateData = {
+                    [colPoints]: nouveauScore,
+                    [colSecu]: new Date().toISOString()
+                };
+                if (estCadeau) {
+                    updateData.recompenses_obtenues = (client.recompenses_obtenues || 0) + 1;
+                }
+
+                const { error: updateError } = await _supabase
+                    .from('clients')
+                    .update(updateData)
+                    .eq('email', emailNormalise);
+
+                if (updateError) throw updateError;
+
+                // Enregistrement historique_scans
+                await _supabase.from('historique_scans').insert({
+                    client_email: emailNormalise,
+                    restaurant_id: config.id,
+                    points_avant: scoreActuel,
+                    points_apres: nouveauScore,
+                    est_cadeau: estCadeau
+                });
+
+                // Incrémenter compteur et afficher résultat
+                scanCount++;
+                scanCountDisplay.innerText = scanCount;
+
+                if (estCadeau) {
+                    showValidation('reward', '🎁', 'CADEAU !', `${client.prenom ? client.prenom + ' a débloqué sa récompense !' : 'Récompense débloquée !'}`, nouveauScore, client.prenom);
+                } else {
+                    showValidation('success', '✅', 'VALIDÉ', `Point ajouté pour ${client.prenom || 'ce client'}.`, nouveauScore, client.prenom);
+                }
+
+                loadingIndicator.classList.remove('active');
+                hideValidation();
+
+            } catch (err) {
+                console.error('FYDELIO scanner error:', err);
+                showValidation('error', '⚠️', 'Erreur', 'Impossible de joindre la base.');
+                loadingIndicator.classList.remove('active');
+                hideValidation();
+            }
+        }
+
+        // ────────────────────────────────────────────────────────────────
+        //  CAMÉRA — Sélection AUTOMATIQUE de la caméra arrière
+        //  Html5Qrcode (bas niveau) + facingMode "environment".
+        //  Pas de menu, pas de clic : la caméra arrière démarre directement.
+        // ────────────────────────────────────────────────────────────────
+        function onScanSuccess(decodedText) {
+            traiterScan(decodedText);
+        }
+
+        const scanConfig = {
+            fps: 30,
+            qrbox: { width: 280, height: 280 },
+            aspectRatio: 1.0,
+            useBarCodeDetectorIfAvailable: true
+        };
+
+        async function demarrerCamera() {
+            btnStartCamera.style.display = 'none';
+            if (!html5Qrcode) {
+                html5Qrcode = new Html5Qrcode("reader", { verbose: false });
+            }
+
+            try {
+                // Tentative 1 — caméra arrière directe via facingMode (strict)
+                await html5Qrcode.start(
+                    { facingMode: { exact: "environment" } },
+                    scanConfig,
+                    onScanSuccess,
+                    () => {}
+                );
+            } catch (e1) {
+                console.warn('facingMode exact:environment indisponible, tentative souple…', e1);
+                try {
+                    // Tentative 2 — facingMode souple
+                    await html5Qrcode.start(
+                        { facingMode: "environment" },
+                        scanConfig,
+                        onScanSuccess,
+                        () => {}
+                    );
+                } catch (e2) {
+                    console.warn('facingMode environment indisponible, sélection manuelle…', e2);
+                    try {
+                        // Tentative 3 — lister les caméras et choisir l'arrière
+                        const cameras = await Html5Qrcode.getCameras();
+                        if (!cameras || cameras.length === 0) throw new Error('Aucune caméra détectée');
+
+                        const arriere = cameras.find(c =>
+                            /back|rear|arrière|environment/i.test(c.label)
+                        ) || cameras[cameras.length - 1];
+
+                        await html5Qrcode.start(
+                            arriere.id,
+                            scanConfig,
+                            onScanSuccess,
+                            () => {}
+                        );
+                    } catch (e3) {
+                        console.error('Échec démarrage caméra:', e3);
+                        showValidation('error', '⚠️', 'Caméra', 'Impossible d\'accéder à la caméra. Vérifiez les autorisations.');
+                        btnStartCamera.style.display = 'inline-block';
+                    }
+                }
+            }
+        }
+
+        // Démarrage auto ; bouton de secours si le navigateur bloque l'autostart
+        demarrerCamera().catch(() => {
+            btnStartCamera.style.display = 'inline-block';
+        });
+        btnStartCamera.addEventListener('click', demarrerCamera);
+    });
+    </script>
+</body>
+</html>
